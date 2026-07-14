@@ -39,6 +39,7 @@ export default function HoleEntry({
             {hole.yds ? ` · ${hole.yds} YDS` : ''} · HCP {hole.si}
             {hole.nineName ? ` · ${hole.nineName} #${hole.nineHole}` : ''}
           </div>
+          {hole.name && <div className="he-holename">“{hole.name}”</div>}
         </div>
         <button className="he-arrow" onClick={onNext} disabled={!onNext} aria-label="Next hole">›</button>
       </div>

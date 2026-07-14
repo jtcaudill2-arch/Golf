@@ -222,11 +222,9 @@ export default function Settings({ me, setMe }) {
           <NineEditor key={nid} nineId={nid} nine={n} />
         ))}
         <div className="fine-print">
-          Nine 1 is the official card (Black tees, par 36 · 3,727 yds). Nine 2 (par 36 ·
-          3,644 yds) and Nine 3 (par 36 · 3,734 yds) don't publish hole-by-hole data —
-          fill them in from the printed card. When two nines are combined, handicap strokes
-          are allocated by ranking all 18 indexes (hardest first), so per-nine 1–9 indexes
-          work fine.
+          All three nines are from the official 2023 printed card, with every tee's
+          yardage. When two nines are combined, handicap strokes are allocated by ranking
+          all 18 stroke indexes (hardest first), so mixed per-nine indexes work fine.
         </div>
       </Section>
 

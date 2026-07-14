@@ -43,7 +43,13 @@ export function StoreProvider({ children }) {
         // newer courses data (official scorecards) and re-titled rules text.
         const upgrades = [];
         if (cfg.courses && (cfg.courses.version || 0) < DEFAULT_CONFIG.courses.version) {
-          cfg.courses = DEFAULT_CONFIG.courses;
+          // Carry the tee selections forward through the upgrade.
+          const next = JSON.parse(JSON.stringify(DEFAULT_CONFIG.courses));
+          for (const key of ['paako', 'blackmesa']) {
+            const old = cfg.courses[key]?.selectedTee;
+            if (old && next[key].tees?.some((t) => t.id === old)) next[key].selectedTee = old;
+          }
+          cfg.courses = next;
           upgrades.push({ key: 'courses', value: cfg.courses });
         }
         if (cfg.rules === LEGACY_RULES) {

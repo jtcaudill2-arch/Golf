@@ -279,6 +279,7 @@ code { color: var(--turquoise); }
 }
 .he-dots { display: inline-flex; }
 .he-sub { font-size: 12px; color: var(--sand-dim); letter-spacing: 1px; }
+.he-holename { font-size: 12px; color: var(--gold); font-style: italic; margin-top: 1px; }
 .he-arrow {
   width: 44px; height: 44px; border-radius: 13px; font-size: 26px;
   background: linear-gradient(180deg, #21272e, #12161a);

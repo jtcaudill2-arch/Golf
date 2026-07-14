@@ -2,11 +2,9 @@
 // stored in the Supabase `config` table. COURSES_VERSION forces a one-time
 // upgrade of the courses config on databases seeded from older defaults.
 
-export const COURSES_VERSION = 3;
+export const COURSES_VERSION = 4;
 
 // Yardage is stored per tee set: yds = { black: 433, blue: 410, ... }.
-// Only the Black tees have published hole-by-hole numbers; other tees are
-// filled in from the printed card on site.
 const hole = (n, par, si, blackYds) => ({
   hole: n,
   par,
@@ -14,9 +12,15 @@ const hole = (n, par, si, blackYds) => ({
   yds: blackYds != null ? { black: blackYds } : {},
 });
 
-// Placeholder nine: par 4s, SI 1-9, no yardage — to be corrected on site.
-const placeholderNine = () =>
-  [1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => hole(n, 4, n, null));
+// Paako hole from the official 2023 card: name, par, men's hcp, and yardage
+// for all six tees (Black/Blue/Green/Brown/Gray/Turquoise).
+const pk = (n, name, par, si, ...y) => ({
+  hole: n,
+  name,
+  par,
+  si,
+  yds: { black: y[0], blue: y[1], green: y[2], brown: y[3], gray: y[4], turquoise: y[5] },
+});
 
 export const DEFAULT_PLAYERS = [
   { id: 'jt', name: 'JT', handicap: 18 },
@@ -51,28 +55,56 @@ export const DEFAULT_COURSES = {
       { id: 'gray', name: 'Gray' },
       { id: 'turquoise', name: 'Turquoise' },
     ],
+    // All three nines from the official 2023 printed card.
     nines: {
-      // Nine 1 (holes 1-9): official card, Black tees — par 36, 3,727 yds.
+      // Nine 1 (holes 1-9): par 36 — Black 3,727 yds.
       nine1: {
         name: 'Nine 1',
         verified: true,
         holes: [
-          hole(1, 4, 13, 433),
-          hole(2, 4, 11, 399),
-          hole(3, 5, 5, 608),
-          hole(4, 3, 17, 182),
-          hole(5, 5, 7, 554),
-          hole(6, 4, 15, 330),
-          hole(7, 4, 1, 493),
-          hole(8, 3, 9, 266),
-          hole(9, 4, 3, 462),
+          pk(1, 'Westward Ho!', 4, 13, 433, 414, 371, 349, 330, 290),
+          pk(2, 'Narrow Passage', 4, 11, 399, 385, 360, 335, 315, 255),
+          pk(3, 'Sandia', 5, 5, 608, 577, 542, 517, 452, 415),
+          pk(4, 'Dye-abolical', 3, 17, 182, 166, 149, 123, 77, 77),
+          pk(5, 'Santa Fe', 5, 7, 554, 542, 522, 504, 487, 420),
+          pk(6, 'Gambler', 4, 15, 330, 312, 297, 280, 262, 192),
+          pk(7, 'Field House', 4, 1, 493, 480, 448, 423, 409, 337),
+          pk(8, 'Panorama', 3, 9, 266, 255, 237, 216, 200, 115),
+          pk(9, 'Anasazi Ruin', 4, 3, 462, 443, 425, 395, 371, 315),
         ],
       },
-      // Nines 2 & 3: hole-by-hole card not published online (Nine 2 is
-      // par 36 / 3,644 yds; Nine 3 is par 36 / 3,734 yds with three each of
-      // par 3/4/5). Correct these from the printed card on site.
-      nine2: { name: 'Nine 2', verified: false, holes: placeholderNine() },
-      nine3: { name: 'Nine 3', verified: false, holes: placeholderNine() },
+      // Nine 2 (holes 10-18): par 36 — Black 3,835 yds.
+      nine2: {
+        name: 'Nine 2',
+        verified: true,
+        holes: [
+          pk(1, 'Windmill Arroyo', 4, 10, 415, 404, 381, 360, 339, 245),
+          pk(2, 'Deer Crossing', 4, 2, 453, 430, 370, 350, 335, 265),
+          pk(3, 'Lone Ponderosa', 5, 14, 545, 527, 499, 478, 435, 355),
+          pk(4, 'Serenity', 4, 16, 386, 367, 340, 317, 280, 280),
+          pk(5, 'Cibola', 3, 8, 271, 245, 224, 200, 176, 108),
+          pk(6, 'Turquoise Trail', 5, 4, 640, 624, 582, 545, 494, 441),
+          pk(7, 'Agua Caliente', 3, 18, 230, 175, 154, 123, 104, 104),
+          pk(8, 'The Ridge', 4, 12, 421, 408, 393, 356, 345, 272),
+          pk(9, 'Trails End', 4, 6, 474, 464, 433, 394, 344, 287),
+        ],
+      },
+      // Nine 3 (holes 19-27): par 36 — Black 3,876 yds.
+      nine3: {
+        name: 'Nine 3',
+        verified: true,
+        holes: [
+          pk(1, 'Trail Head', 5, 5, 576, 557, 533, 484, 470, 405),
+          pk(2, 'Ambush', 4, 7, 460, 444, 410, 390, 376, 305),
+          pk(3, 'Wreckage', 4, 2, 456, 428, 410, 391, 371, 279),
+          pk(4, 'Redan', 3, 8, 233, 212, 198, 187, 171, 110),
+          pk(5, 'Muirfield', 5, 1, 628, 613, 583, 563, 478, 478),
+          pk(6, 'Postage Stamp', 3, 9, 204, 191, 179, 156, 146, 146),
+          pk(7, 'Waterloo', 5, 3, 567, 559, 521, 495, 481, 376),
+          pk(8, 'Sanctuary', 3, 6, 256, 242, 225, 185, 172, 105),
+          pk(9, 'Descent', 4, 4, 496, 488, 454, 423, 369, 273),
+        ],
+      },
     },
   },
   // Black Mesa: official card, Black tees — par 72, 7,307 yds.
