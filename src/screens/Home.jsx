@@ -15,10 +15,15 @@ export default function Home() {
       <MesaHero>
         <h1 className="mesa-title">{(config.eventName || 'Cuck Cup').toUpperCase()}</h1>
         <div className="mesa-sub">
-          LIVE STANDINGS
-          <span className={`conn ${status === 'live' ? 'conn-live' : ''}`}>
-            {status === 'live' ? '● LIVE' : '○ connecting'}
-          </span>
+          STANDINGS
+          {status === 'live' ? (
+            <span className="live-badge">
+              <span className="live-badge-dot" />
+              LIVE
+            </span>
+          ) : (
+            <span className="conn">○ connecting</span>
+          )}
         </div>
       </MesaHero>
 

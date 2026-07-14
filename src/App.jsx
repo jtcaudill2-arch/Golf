@@ -71,7 +71,10 @@ function Shell() {
 function NavBtn({ id, tab, setTab, label, icon }) {
   return (
     <button className={`nav-btn ${tab === id ? 'on' : ''}`} onClick={() => setTab(id)}>
-      <span className="nav-icon">{icon}</span>
+      <span className="nav-icon">
+        {icon}
+        {id === 'home' && <span className="nav-live-dot" />}
+      </span>
       <span className="nav-label">{label}</span>
     </button>
   );

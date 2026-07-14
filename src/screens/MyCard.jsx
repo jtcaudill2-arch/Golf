@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useStore } from '../lib/store.jsx';
 import { holesForRound, cardTotals, matchState } from '../lib/scoring.js';
 import HoleEntry from '../components/HoleEntry.jsx';
@@ -12,6 +12,8 @@ export default function MyCard({ me }) {
   const [round, setRound] = useState(null); // null = follow activeRound
   const activeRound = round ?? config.activeRound ?? 1;
   const [holeNum, setHoleNum] = useState(null);
+  const advanceTimer = useRef(null);
+  useEffect(() => () => clearTimeout(advanceTimer.current), []);
 
   const player = config.players.find((p) => p.id === me);
   const myTeam = config.teams.find((t) => t.players.includes(me));
@@ -91,8 +93,12 @@ export default function MyCard({ me }) {
         onChange={(v, advance = false) => {
           setScore(activeRound, entity, hole.hole, v);
           // Pin the view so entering a score never jumps holes unexpectedly;
-          // bubble taps deliberately advance to the next hole.
-          setHoleNum(advance && hole.hole < 18 ? hole.hole + 1 : hole.hole);
+          // bubble taps advance to the next hole after the reaction plays.
+          setHoleNum(hole.hole);
+          clearTimeout(advanceTimer.current);
+          if (advance && hole.hole < 18) {
+            advanceTimer.current = setTimeout(() => setHoleNum(hole.hole + 1), 950);
+          }
         }}
         handicap={handicap}
         useHandicap={useHandicap}
