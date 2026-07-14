@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useStore } from '../lib/store.jsx';
 import {
   round1Results, round1TeamResults, round2Results, round3Results,
-  holesForRound, coursePar, selectedTee,
+  coursePar, selectedTee, fmtPts,
 } from '../lib/scoring.js';
 import Zia from '../components/Zia.jsx';
 import { RelChip } from '../components/Badge.jsx';
@@ -28,8 +28,10 @@ export default function Rounds() {
 
 function Round1() {
   const { config, scores } = useStore();
-  const { holes, rows } = round1Results(config, scores);
-  const team = round1TeamResults(config, scores);
+  const { holes, rows, team } = useMemo(() => {
+    const r = round1Results(config, scores);
+    return { ...r, team: round1TeamResults(config, scores) };
+  }, [config, scores]);
   const groups = config.round1.groups || [];
   const nameOf = (id) => config.players.find((p) => p.id === id)?.name || id;
 
@@ -54,7 +56,7 @@ function Round1() {
                 <td>{r.played || '–'}</td>
                 <td>{r.played ? r.gross : '–'}</td>
                 <td className="lb-strong">{r.net ?? '–'}</td>
-                <td className="lb-total">{r.points % 1 ? r.points.toFixed(1) : r.points}</td>
+                <td className="lb-total">{fmtPts(r.points)}</td>
               </tr>
             ))}
           </tbody>
@@ -67,7 +69,7 @@ function Round1() {
           <div key={t.id} className="stat-row">
             <span className="stat-rank">{t.rank ?? '–'}</span>
             <span className="stat-name">{t.name}<span className="stat-detail">{t.detail}</span></span>
-            <span className="stat-value">{t.net != null ? `${t.net % 1 ? t.net.toFixed(1) : t.net} net` : '–'}</span>
+            <span className="stat-value">{t.net != null ? `${fmtPts(t.net)} net` : '–'}</span>
           </div>
         ))}
       </div>
@@ -77,7 +79,7 @@ function Round1() {
 
 function Round2() {
   const { config, scores } = useStore();
-  const { holes, rows } = round2Results(config, scores);
+  const { holes, rows } = useMemo(() => round2Results(config, scores), [config, scores]);
   const nameOf = (id) => config.players.find((p) => p.id === id)?.name || id;
   const teamName = (id) => config.teams.find((t) => t.id === id)?.name || id;
 
@@ -105,7 +107,7 @@ function Round2() {
                 <td>{r.played || '–'}</td>
                 <td className="lb-strong">{r.gross ?? '–'}</td>
                 <td>{r.played ? <RelChip diff={r.toPar} /> : '–'}</td>
-                <td className="lb-total">{r.points % 1 ? r.points.toFixed(1) : r.points}</td>
+                <td className="lb-total">{fmtPts(r.points)}</td>
               </tr>
             ))}
           </tbody>
@@ -118,8 +120,7 @@ function Round2() {
 
 function Round3() {
   const { config, scores } = useStore();
-  const { matches } = round3Results(config, scores);
-  const holes = holesForRound(config, 3);
+  const { matches, holes } = useMemo(() => round3Results(config, scores), [config, scores]);
 
   return (
     <>
@@ -158,8 +159,8 @@ function Round3() {
             })}
           </div>
           <div className="match-pts">
-            <span>{m.pts1 % 1 ? m.pts1.toFixed(1) : m.pts1} pts</span>
-            <span>{m.pts2 % 1 ? m.pts2.toFixed(1) : m.pts2} pts</span>
+            <span>{fmtPts(m.pts1)} pts</span>
+            <span>{fmtPts(m.pts2)} pts</span>
           </div>
         </div>
       ))}

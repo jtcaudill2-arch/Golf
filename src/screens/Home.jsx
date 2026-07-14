@@ -1,13 +1,16 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useStore } from '../lib/store.jsx';
-import { teamStandings, round1TeamResults } from '../lib/scoring.js';
+import { teamStandings, round1TeamResults, fmtPts } from '../lib/scoring.js';
 import Zia from '../components/Zia.jsx';
 import MesaHero from '../components/MesaHero.jsx';
 
 export default function Home() {
-  const { config, scores, status } = useStore();
-  const standings = teamStandings(config, scores);
-  const teamCard = round1TeamResults(config, scores);
+  const { config, scores, status, syncError } = useStore();
+  // Recompute standings once per data change, not once per render.
+  const { standings, teamCard } = useMemo(
+    () => ({ standings: teamStandings(config, scores), teamCard: round1TeamResults(config, scores) }),
+    [config, scores]
+  );
   const anyPoints = standings.some((r) => r.total > 0);
 
   return (
@@ -24,6 +27,7 @@ export default function Home() {
           ) : (
             <span className="conn">○ connecting</span>
           )}
+          {syncError && <span className="sync-warn">⚠ SYNC</span>}
         </div>
       </MesaHero>
 
@@ -97,5 +101,5 @@ export default function Home() {
   );
 }
 
-const fmt = (n) => (n === 0 ? '0' : n % 1 === 0 ? String(n) : n.toFixed(1));
-const round1 = (n) => (n % 1 === 0 ? String(n) : n.toFixed(1));
+const fmt = fmtPts;
+const round1 = fmtPts;

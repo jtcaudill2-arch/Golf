@@ -119,6 +119,31 @@ export function assignPoints(ranked, pointTable, key) {
   return out;
 }
 
+// Points/number formatter shared by every screen (half points from halves
+// and split ties).
+export const fmtPts = (n) => (n % 1 === 0 ? String(n) : n.toFixed(1));
+
+// Total yardage for a hole list whose yds are already tee-resolved.
+export const totalYds = (holes) => holes.reduce((s, h) => s + (h.yds || 0), 0);
+
+// Sort scored rows, assign rank + points (ties split), tack unscored on the
+// end — the shared tail of every round-results function.
+function rankAndPoints(rows, key, pointTable) {
+  const scored = rows.filter((r) => r[key] != null).sort((a, b) => a[key] - b[key]);
+  const unscored = rows.filter((r) => r[key] == null);
+  const points = assignPoints(scored, pointTable, key);
+  scored.forEach((r, i) => { r.rank = i + 1; r.points = points[r.id] ?? 0; });
+  unscored.forEach((r) => { r.rank = null; r.points = 0; });
+  return [...scored, ...unscored];
+}
+
+// Shared tie-aware rank pass for the standings tables (descending totals).
+function tieRanks(rows) {
+  rows.forEach((r, i) => {
+    r.rank = i > 0 && rows[i - 1].total === r.total ? rows[i - 1].rank : i + 1;
+  });
+}
+
 // ---------------------------------------------------------------- round 1
 
 export function round1Results(config, scores) {
@@ -133,12 +158,7 @@ export function round1Results(config, scores) {
       net: t.played > 0 ? t.gross - p.handicap : null,
     };
   });
-  const scored = rows.filter((r) => r.net != null).sort((a, b) => a.net - b.net);
-  const unscored = rows.filter((r) => r.net == null);
-  const points = assignPoints(scored, config.round1.points, 'net');
-  scored.forEach((r, i) => { r.rank = i + 1; r.points = points[r.id] ?? 0; });
-  unscored.forEach((r) => { r.rank = null; r.points = 0; });
-  return { holes, rows: [...scored, ...unscored] };
+  return { holes, rows: rankAndPoints(rows, 'net', config.round1.points) };
 }
 
 // Round 1 team component: best net of the pair, or (solo gross − average of
@@ -151,7 +171,8 @@ export function round1TeamResults(config, scores) {
     const [aId, bId] = team.players;
     const a = byId[aId], b = byId[bId];
     const soloId = config.round1.soloTeams?.[team.id];
-    if (soloId && byId[soloId]) {
+    // A solo flag only counts while the flagged player is still on this team.
+    if (soloId && byId[soloId] && team.players.includes(soloId)) {
       const solo = byId[soloId];
       const t = cardTotals(holes, r1scores[solo.id], 0);
       const avgHcp = (Number(a?.handicap ?? 0) + Number(b?.handicap ?? 0)) / 2;
@@ -172,12 +193,7 @@ export function round1TeamResults(config, scores) {
       net: best?.net ?? null, played: best?.played ?? 0,
     };
   });
-  const scored = rows.filter((r) => r.net != null).sort((a, b) => a.net - b.net);
-  const unscored = rows.filter((r) => r.net == null);
-  const points = assignPoints(scored, config.round1.teamPoints || [], 'net');
-  scored.forEach((r, i) => { r.rank = i + 1; r.points = points[r.id] ?? 0; });
-  unscored.forEach((r) => { r.rank = null; r.points = 0; });
-  return [...scored, ...unscored];
+  return rankAndPoints(rows, 'net', config.round1.teamPoints || []);
 }
 
 // ---------------------------------------------------------------- round 2
@@ -192,12 +208,7 @@ export function round2Results(config, scores) {
       gross: t.played > 0 ? t.gross : null, toPar: t.toPar, played: t.played,
     };
   });
-  const scored = rows.filter((r) => r.gross != null).sort((a, b) => a.gross - b.gross);
-  const unscored = rows.filter((r) => r.gross == null);
-  const points = assignPoints(scored, config.round2.points, 'gross');
-  scored.forEach((r, i) => { r.rank = i + 1; r.points = points[r.id] ?? 0; });
-  unscored.forEach((r) => { r.rank = null; r.points = 0; });
-  return { holes, rows: [...scored, ...unscored] };
+  return { holes, rows: rankAndPoints(rows, 'gross', config.round2.points) };
 }
 
 // ---------------------------------------------------------------- round 3
@@ -205,8 +216,8 @@ export function round2Results(config, scores) {
 // Hole-by-hole match play with strokes given on the hardest holes.
 // Returns live status ("2 UP thru 7"), auto-detected closeouts ("3&2"),
 // and the full-18 case ("1 UP" / "AS").
-export function matchState(config, scores, match) {
-  const holes = blackMesaHoles(config.courses);
+export function matchState(config, scores, match, holes = null) {
+  holes = holes || blackMesaHoles(config.courses);
   const r3 = scores[3] || {};
   const byId = Object.fromEntries(config.players.map((p) => [p.id, p]));
   const p1 = byId[match.p1], p2 = byId[match.p2];
@@ -227,8 +238,9 @@ export function matchState(config, scores, match) {
     if (n1 < n2) { up += 1; holeResults[h.hole] = 1; }
     else if (n2 < n1) { up -= 1; holeResults[h.hole] = 2; }
     else holeResults[h.hole] = 0;
-    const remaining = 18 - h.hole;
-    if (Math.abs(up) > remaining) {
+    const remaining = holes.length - h.hole;
+    // A win on the final hole is "N UP", not a closeout — only close early.
+    if (remaining > 0 && Math.abs(up) > remaining) {
       closed = { winner: up > 0 ? match.p1 : match.p2, label: `${Math.abs(up)}&${remaining}` };
       break;
     }
@@ -240,7 +252,7 @@ export function matchState(config, scores, match) {
   } else if (closed) {
     winner = closed.winner; done = true;
     status = `${byId[winner]?.name} wins ${closed.label}`;
-  } else if (thru === 18) {
+  } else if (thru === holes.length) {
     done = true;
     if (up === 0) status = 'Halved (AS)';
     else { winner = up > 0 ? match.p1 : match.p2; status = `${byId[winner]?.name} wins ${Math.abs(up)} UP`; }
@@ -255,9 +267,10 @@ export function matchState(config, scores, match) {
 
 export function round3Results(config, scores) {
   const { winPoints, halvePoints } = config.round3;
+  const holes = blackMesaHoles(config.courses);
   const points = {};
   const matches = config.round3.matches.map((m) => {
-    const st = matchState(config, scores, m);
+    const st = matchState(config, scores, m, holes);
     // Live standings: leader projected to win, ties projected halved.
     let pts1 = 0, pts2 = 0;
     if (st.thru > 0) {
@@ -273,14 +286,15 @@ export function round3Results(config, scores) {
     points[m.p2] = (points[m.p2] || 0) + pts2;
     return { ...m, state: st, pts1, pts2 };
   });
-  return { matches, points };
+  return { matches, points, holes };
 }
 
 // ---------------------------------------------------------------- overall
 
 export function overallStandings(config, scores) {
   const r1 = round1Results(config, scores);
-  const r1team = round1TeamResults(config, scores);
+  const bonusOn = !!config.round1.teamBonusEnabled;
+  const r1team = bonusOn ? round1TeamResults(config, scores) : null;
   const r2 = round2Results(config, scores);
   const r3 = round3Results(config, scores);
 
@@ -289,15 +303,11 @@ export function overallStandings(config, scores) {
     const myTeam = config.teams.find((t) => t.players.includes(p.id));
     const p2 = r2.rows.find((r) => r.id === myTeam?.id)?.points || 0;
     const p3 = r3.points[p.id] || 0;
-    const bonus = config.round1.teamBonusEnabled
-      ? (r1team.find((r) => r.id === myTeam?.id)?.points || 0)
-      : 0;
+    const bonus = bonusOn ? (r1team.find((r) => r.id === myTeam?.id)?.points || 0) : 0;
     return { id: p.id, name: p.name, r1: p1, r2: p2, r3: p3, bonus, total: p1 + p2 + p3 + bonus };
   });
   rows.sort((a, b) => b.total - a.total);
-  rows.forEach((r, i) => {
-    r.rank = i > 0 && rows[i - 1].total === r.total ? rows[i - 1].rank : i + 1;
-  });
+  tieRanks(rows);
   return rows;
 }
 
@@ -317,8 +327,6 @@ export function teamStandings(config, scores) {
     };
   });
   rows.sort((a, b) => b.total - a.total);
-  rows.forEach((r, i) => {
-    r.rank = i > 0 && rows[i - 1].total === r.total ? rows[i - 1].rank : i + 1;
-  });
+  tieRanks(rows);
   return rows;
 }

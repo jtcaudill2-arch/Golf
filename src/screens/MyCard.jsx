@@ -40,6 +40,7 @@ export default function MyCard({ me }) {
 
   if (!player) return <div className="screen pad">Pick who you are in Settings.</div>;
   if (activeRound === 2 && !myTeam) return <div className="screen pad">You're not on a team — set teams in Settings.</div>;
+  if (!hole) return <div className="screen pad">No holes configured for this round — check the course setup in Settings.</div>;
 
   return (
     <div className="screen">
@@ -96,14 +97,14 @@ export default function MyCard({ me }) {
           // bubble taps advance to the next hole after the reaction plays.
           setHoleNum(hole.hole);
           clearTimeout(advanceTimer.current);
-          if (advance && hole.hole < 18) {
+          if (advance && hole.hole < holes.length) {
             advanceTimer.current = setTimeout(() => setHoleNum(hole.hole + 1), 950);
           }
         }}
         handicap={handicap}
         useHandicap={useHandicap}
         onPrev={hole.hole > 1 ? () => setHoleNum(hole.hole - 1) : null}
-        onNext={hole.hole < 18 ? () => setHoleNum(hole.hole + 1) : null}
+        onNext={hole.hole < holes.length ? () => setHoleNum(hole.hole + 1) : null}
       />
 
       <CardGrid
@@ -158,5 +159,5 @@ function firstOpenHole(holes, holeScores, startHole) {
     if (h.hole < startHole) continue;
     if (holeScores[h.hole] == null) return h.hole;
   }
-  return 18;
+  return holes[holes.length - 1]?.hole ?? 1;
 }

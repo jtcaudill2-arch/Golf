@@ -14,7 +14,6 @@ export default function HoleEntry({
   useHandicap = true,
   onPrev,
   onNext,
-  banner = null,
 }) {
   const dots = useHandicap ? strokesOnHole(handicap, hole.effSi) : 0;
   const net = strokes != null ? strokes - dots - hole.par : null;
@@ -60,7 +59,6 @@ export default function HoleEntry({
         <button className="he-arrow" onClick={onNext} disabled={!onNext} aria-label="Next hole">›</button>
       </div>
 
-      {banner}
 
       <div className="he-bubbles">
         {bubbles.map((n) => (
@@ -136,21 +134,23 @@ function Reaction({ diff, onDone }) {
 
   const mag = Math.min(3, Math.abs(diff));
   const label = LABELS[String(Math.max(-3, Math.min(3, diff)))];
-  const colors = ['#d9b24a', '#37b3a8', '#e9e1d1'];
-  const particles =
-    diff < 0
-      ? Array.from({ length: 14 * mag }, (_, i) => {
-          const angle = Math.random() * Math.PI * 2;
-          const dist = 50 + Math.random() * (50 + 35 * mag);
-          return {
-            dx: Math.cos(angle) * dist,
-            dy: Math.sin(angle) * dist,
-            color: colors[i % colors.length],
-            delay: Math.random() * 0.18,
-            size: 5 + Math.random() * 4,
-          };
-        })
-      : [];
+  // Generated once per reaction (the component is remounted per reaction via
+  // key), so re-renders from realtime events can't re-randomize mid-flight.
+  const [particles] = useState(() => {
+    if (diff >= 0) return [];
+    const colors = ['#d9b24a', '#37b3a8', '#e9e1d1'];
+    return Array.from({ length: 14 * mag }, (_, i) => {
+      const angle = Math.random() * Math.PI * 2;
+      const dist = 50 + Math.random() * (50 + 35 * mag);
+      return {
+        dx: Math.cos(angle) * dist,
+        dy: Math.sin(angle) * dist,
+        color: colors[i % colors.length],
+        delay: Math.random() * 0.18,
+        size: 5 + Math.random() * 4,
+      };
+    });
+  });
 
   return (
     <div className="reaction-layer" aria-hidden="true">

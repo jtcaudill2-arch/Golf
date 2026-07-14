@@ -73,9 +73,21 @@ export default function Settings({ me, setMe }) {
                 className="input"
                 value={t.players[slot] || ''}
                 onChange={(e) =>
-                  setConfigKey('teams', (ts) =>
-                    upd(ts, i, { players: t.players.map((p, s) => (s === slot ? e.target.value : p)) })
-                  )
+                  // Swap semantics on fresh state: putting a player in this
+                  // slot moves the displaced player to wherever the incoming
+                  // player was, so nobody can end up on two teams.
+                  setConfigKey('teams', (ts) => {
+                    const incoming = e.target.value;
+                    const displaced = ts[i]?.players[slot];
+                    return ts.map((team, ti) => ({
+                      ...team,
+                      players: team.players.map((p, s) => {
+                        if (ti === i && s === slot) return incoming;
+                        if (p === incoming) return displaced;
+                        return p;
+                      }),
+                    }));
+                  })
                 }
               >
                 {players.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
@@ -127,7 +139,9 @@ export default function Settings({ me, setMe }) {
         <h3 className="mini-title">Points by net finish (1st → 8th)</h3>
         <PointsRow
           values={config.round1.points}
-          onCommit={(v) => setConfigKey('round1', (r1) => ({ ...r1, points: v }))}
+          onCommitAt={(i, v) =>
+            setConfigKey('round1', (r1) => ({ ...r1, points: r1.points.map((x, xi) => (xi === i ? v : x)) }))
+          }
         />
         <h3 className="mini-title">Team component</h3>
         <label className="solo-toggle">
@@ -141,7 +155,12 @@ export default function Settings({ me, setMe }) {
         <div className="fine-print">Team bonus points by finish (used only when enabled):</div>
         <PointsRow
           values={config.round1.teamPoints || [0, 0, 0, 0]}
-          onCommit={(v) => setConfigKey('round1', (r1) => ({ ...r1, teamPoints: v }))}
+          onCommitAt={(i, v) =>
+            setConfigKey('round1', (r1) => ({
+              ...r1,
+              teamPoints: (r1.teamPoints || [0, 0, 0, 0]).map((x, xi) => (xi === i ? v : x)),
+            }))
+          }
         />
         <div className="fine-print">
           "Teammate isn't playing" toggles live on each player's Round 1 scorecard.
@@ -175,7 +194,9 @@ export default function Settings({ me, setMe }) {
         <h3 className="mini-title">Points by gross finish (1st → 4th)</h3>
         <PointsRow
           values={config.round2.points}
-          onCommit={(v) => setConfigKey('round2', (r2) => ({ ...r2, points: v }))}
+          onCommitAt={(i, v) =>
+            setConfigKey('round2', (r2) => ({ ...r2, points: r2.points.map((x, xi) => (xi === i ? v : x)) }))
+          }
         />
       </Section>
 
@@ -184,9 +205,9 @@ export default function Settings({ me, setMe }) {
           <div key={m.id} className="match-edit">
             <div className="row2">
               <PlayerSelect players={players} value={m.p1}
-                onChange={(v) => setConfigKey('round3', (r3) => ({ ...r3, matches: upd(r3.matches, i, { p1: v }) }))} />
+                onChange={(v) => setConfigKey('round3', (r3) => ({ ...r3, matches: updMatchPlayer(r3.matches, i, 'p1', v) }))} />
               <PlayerSelect players={players} value={m.p2}
-                onChange={(v) => setConfigKey('round3', (r3) => ({ ...r3, matches: upd(r3.matches, i, { p2: v }) }))} />
+                onChange={(v) => setConfigKey('round3', (r3) => ({ ...r3, matches: updMatchPlayer(r3.matches, i, 'p2', v) }))} />
             </div>
             <div className="row2">
               <select
@@ -306,6 +327,7 @@ function NumField({ value, onCommit, min = 0, max = 99, step = 1 }) {
   const [v, setV] = useState(value);
   useEffect(() => setV(value), [value]);
   const commit = () => {
+    if (String(v).trim() === '') { setV(value); return; } // cleared field: revert, don't commit the min
     const n = Math.min(max, Math.max(min, Number(v)));
     if (!Number.isNaN(n) && n !== value) onCommit(n);
     else setV(value);
@@ -345,7 +367,7 @@ function PlayerSelect({ players, value, onChange }) {
   );
 }
 
-function PointsRow({ values, onCommit }) {
+function PointsRow({ values, onCommitAt }) {
   return (
     <div className="points-row">
       {values.map((p, i) => (
@@ -353,7 +375,7 @@ function PointsRow({ values, onCommit }) {
           key={i}
           value={p}
           min={0} max={99} step={0.5}
-          onCommit={(v) => onCommit(values.map((x, xi) => (xi === i ? v : x)))}
+          onCommit={(v) => onCommitAt(i, v)}
         />
       ))}
     </div>
@@ -540,3 +562,15 @@ function YdsField({ value, onCommit }) {
 }
 
 const upd = (arr, i, patch) => arr.map((x, xi) => (xi === i ? { ...x, ...patch } : x));
+
+// Swap a match participant; if the outgoing player was the stroke receiver,
+// the incoming player inherits the strokes (otherwise they'd silently apply
+// to nobody).
+function updMatchPlayer(matches, i, slot, playerId) {
+  return matches.map((m, mi) => {
+    if (mi !== i) return m;
+    const next = { ...m, [slot]: playerId };
+    if (m.receiver === m[slot]) next.receiver = playerId;
+    return next;
+  });
+}

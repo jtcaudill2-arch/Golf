@@ -15,7 +15,8 @@ export default function CardGrid({
   onSelectHole,
   disabledBefore = 1,
 }) {
-  const half = (slice) => (
+  const slice = holes;
+  return (
     <div className="cardgrid-scroll">
       <table className="cardgrid">
         <tbody>
@@ -90,6 +91,4 @@ export default function CardGrid({
       </table>
     </div>
   );
-
-  return half(holes);
 }

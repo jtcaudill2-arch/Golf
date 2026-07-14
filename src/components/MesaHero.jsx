@@ -55,26 +55,13 @@ export default function MesaHero({ children }) {
         <circle cx="300" cy="86" r="52" fill="url(#sunGlow)" />
         <g stroke="#d9b24a" strokeWidth="2.6" strokeLinecap="round" opacity="0.95">
           <circle cx="300" cy="86" r="15" fill="#d9b24a" stroke="none" />
-          <g>
-            <line x1="295" y1="62" x2="295" y2="52" />
-            <line x1="300" y1="60" x2="300" y2="46" />
-            <line x1="305" y1="62" x2="305" y2="52" />
-          </g>
-          <g transform="rotate(90 300 86)">
-            <line x1="295" y1="62" x2="295" y2="52" />
-            <line x1="300" y1="60" x2="300" y2="46" />
-            <line x1="305" y1="62" x2="305" y2="52" />
-          </g>
-          <g transform="rotate(180 300 86)">
-            <line x1="295" y1="62" x2="295" y2="52" />
-            <line x1="300" y1="60" x2="300" y2="46" />
-            <line x1="305" y1="62" x2="305" y2="52" />
-          </g>
-          <g transform="rotate(270 300 86)">
-            <line x1="295" y1="62" x2="295" y2="52" />
-            <line x1="300" y1="60" x2="300" y2="46" />
-            <line x1="305" y1="62" x2="305" y2="52" />
-          </g>
+          {[0, 90, 180, 270].map((r) => (
+            <g key={r} transform={`rotate(${r} 300 86)`}>
+              <line x1="295" y1="62" x2="295" y2="52" />
+              <line x1="300" y1="60" x2="300" y2="46" />
+              <line x1="305" y1="62" x2="305" y2="52" />
+            </g>
+          ))}
         </g>
 
         {/* far mesa band */}
