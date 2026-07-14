@@ -88,7 +88,12 @@ export default function MyCard({ me }) {
       <HoleEntry
         hole={hole}
         strokes={holeScores[hole.hole] ?? null}
-        onChange={(v) => setScore(activeRound, entity, hole.hole, v)}
+        onChange={(v, advance = false) => {
+          setScore(activeRound, entity, hole.hole, v);
+          // Pin the view so entering a score never jumps holes unexpectedly;
+          // bubble taps deliberately advance to the next hole.
+          setHoleNum(advance && hole.hole < 18 ? hole.hole + 1 : hole.hole);
+        }}
         handicap={handicap}
         useHandicap={useHandicap}
         onPrev={hole.hole > 1 ? () => setHoleNum(hole.hole - 1) : null}

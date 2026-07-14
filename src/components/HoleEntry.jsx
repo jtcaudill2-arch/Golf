@@ -16,8 +16,9 @@ export default function HoleEntry({
 }) {
   const dots = useHandicap ? strokesOnHole(handicap, hole.effSi) : 0;
   const net = strokes != null ? strokes - dots - hole.par : null;
-  const maxBubble = Math.max(hole.par + 4, 9);
-  const bubbles = Array.from({ length: maxBubble }, (_, i) => i + 1);
+  // House rules: triple bogey max — pick it up.
+  const maxScore = hole.par + 3;
+  const bubbles = Array.from({ length: maxScore }, (_, i) => i + 1);
 
   return (
     <div className="hole-entry card">
@@ -51,7 +52,10 @@ export default function HoleEntry({
           <button
             key={n}
             className={`bubble ${strokes === n ? 'bubble-on' : ''}`}
-            onClick={() => onChange(strokes === n ? null : n)}
+            onClick={() => {
+              const next = strokes === n ? null : n;
+              onChange(next, next != null); // bubble entry advances to the next hole
+            }}
           >
             {n}
           </button>
@@ -70,7 +74,8 @@ export default function HoleEntry({
           <div className="step-value">{strokes ?? '–'}</div>
           <button
             className="step-btn"
-            onClick={() => onChange(strokes == null ? hole.par : strokes + 1)}
+            onClick={() => onChange(strokes == null ? hole.par : Math.min(maxScore, strokes + 1))}
+            disabled={strokes != null && strokes >= maxScore}
           >
             +
           </button>
@@ -88,6 +93,7 @@ export default function HoleEntry({
           )}
         </div>
       </div>
+      {strokes === maxScore && <div className="he-max">TRIPLE MAX — PICK IT UP</div>}
     </div>
   );
 }
