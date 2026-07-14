@@ -174,11 +174,13 @@ export const DEFAULT_ROUND2 = {
 
 export const DEFAULT_ROUND3 = {
   name: 'Round 3 · Black Mesa · Match Play',
+  // Strokes given are computed live from each player's current handicap
+  // (matchHandicapStrokes) — only the pairing is fixed here.
   matches: [
-    { id: 'm1', p1: 'jack', p2: 'jt', receiver: 'jt', strokes: 2 },
-    { id: 'm2', p1: 'beck', p2: 'tyler', receiver: 'tyler', strokes: 3 },
-    { id: 'm3', p1: 'keegan', p2: 'nathan', receiver: 'nathan', strokes: 2 },
-    { id: 'm4', p1: 'alex', p2: 'colton', receiver: 'colton', strokes: 3 },
+    { id: 'm1', p1: 'jack', p2: 'jt' },
+    { id: 'm2', p1: 'beck', p2: 'tyler' },
+    { id: 'm3', p1: 'keegan', p2: 'nathan' },
+    { id: 'm4', p1: 'alex', p2: 'colton' },
   ],
   winPoints: 15,
   halvePoints: 7.5,

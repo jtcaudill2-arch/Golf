@@ -213,6 +213,20 @@ export function round2Results(config, scores) {
 
 // ---------------------------------------------------------------- round 3
 
+// Match-play strokes given: the higher-handicap player receives the full
+// difference between the two current handicaps, allocated to the hardest
+// holes by stroke index. Computed live from config.players every time it's
+// called — there's nothing to keep in sync when a handicap changes, and no
+// stale-receiver bug possible, since neither value is ever stored.
+export function matchHandicapStrokes(config, match) {
+  const byId = Object.fromEntries(config.players.map((p) => [p.id, p]));
+  const h1 = Number(byId[match.p1]?.handicap ?? 0);
+  const h2 = Number(byId[match.p2]?.handicap ?? 0);
+  const diff = Math.abs(h1 - h2);
+  const receiver = diff === 0 ? null : h1 > h2 ? match.p1 : match.p2;
+  return { receiver, strokes: diff };
+}
+
 // Hole-by-hole match play with strokes given on the hardest holes.
 // Returns live status ("2 UP thru 7"), auto-detected closeouts ("3&2"),
 // and the full-18 case ("1 UP" / "AS").
@@ -221,6 +235,7 @@ export function matchState(config, scores, match, holes = null) {
   const r3 = scores[3] || {};
   const byId = Object.fromEntries(config.players.map((p) => [p.id, p]));
   const p1 = byId[match.p1], p2 = byId[match.p2];
+  const { receiver, strokes: given } = matchHandicapStrokes(config, match);
   let up = 0; // positive = p1 up
   let thru = 0;
   const holeResults = {};
@@ -230,10 +245,9 @@ export function matchState(config, scores, match, holes = null) {
     const s1 = r3[match.p1]?.[h.hole];
     const s2 = r3[match.p2]?.[h.hole];
     if (s1 == null || s2 == null) break;
-    const strokes = (id) =>
-      match.receiver === id && h.effSi <= (match.strokes || 0) ? 1 : 0;
-    const n1 = s1 - strokes(match.p1);
-    const n2 = s2 - strokes(match.p2);
+    const strokesFor = (id) => (id === receiver ? strokesOnHole(given, h.effSi) : 0);
+    const n1 = s1 - strokesFor(match.p1);
+    const n2 = s2 - strokesFor(match.p2);
     thru = h.hole;
     if (n1 < n2) { up += 1; holeResults[h.hole] = 1; }
     else if (n2 < n1) { up -= 1; holeResults[h.hole] = 2; }
@@ -262,7 +276,10 @@ export function matchState(config, scores, match, holes = null) {
     const leader = up > 0 ? p1 : p2;
     status = `${leader?.name} ${Math.abs(up)} UP thru ${thru}`;
   }
-  return { up, thru, status, winner, done, halved: done && !winner, holeResults, p1, p2 };
+  return {
+    up, thru, status, winner, done, halved: done && !winner, holeResults, p1, p2,
+    receiver, strokes: given,
+  };
 }
 
 export function round3Results(config, scores) {
@@ -284,7 +301,9 @@ export function round3Results(config, scores) {
     }
     points[m.p1] = (points[m.p1] || 0) + pts1;
     points[m.p2] = (points[m.p2] || 0) + pts2;
-    return { ...m, state: st, pts1, pts2 };
+    // Override any stale stored receiver/strokes with the live-computed
+    // values so every consumer (Rounds, MyCard) always sees current data.
+    return { ...m, receiver: st.receiver, strokes: st.strokes, state: st, pts1, pts2 };
   });
   return { matches, points, holes };
 }

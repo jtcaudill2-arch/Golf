@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useStore } from '../lib/store.jsx';
-import { paakoHoles, blackMesaHoles, coursePar, selectedTee, ydsForTee } from '../lib/scoring.js';
+import { paakoHoles, blackMesaHoles, coursePar, selectedTee, ydsForTee, matchHandicapStrokes } from '../lib/scoring.js';
 
 // Every adjustable knob in the app. All edits write to Supabase config and
 // broadcast to every phone instantly. Text/number fields commit on blur.
@@ -203,32 +203,29 @@ export default function Settings({ me, setMe }) {
       </Section>
 
       <Section title="Round 3 · Match play (Black Mesa)">
-        {(config.round3.matches || []).map((m, i) => (
-          <div key={m.id} className="match-edit">
-            <div className="row2">
-              <PlayerSelect players={players} value={m.p1}
-                onChange={(v) => setConfigKey('round3', (r3) => ({ ...r3, matches: updMatchPlayer(r3.matches, i, 'p1', v) }))} />
-              <PlayerSelect players={players} value={m.p2}
-                onChange={(v) => setConfigKey('round3', (r3) => ({ ...r3, matches: updMatchPlayer(r3.matches, i, 'p2', v) }))} />
+        {(config.round3.matches || []).map((m, i) => {
+          const hs = matchHandicapStrokes(config, m);
+          const receiverName = hs.receiver ? players.find((p) => p.id === hs.receiver)?.name : null;
+          return (
+            <div key={m.id} className="match-edit">
+              <div className="row2">
+                <PlayerSelect players={players} value={m.p1}
+                  onChange={(v) => setConfigKey('round3', (r3) => ({ ...r3, matches: upd(r3.matches, i, { p1: v }) }))} />
+                <PlayerSelect players={players} value={m.p2}
+                  onChange={(v) => setConfigKey('round3', (r3) => ({ ...r3, matches: upd(r3.matches, i, { p2: v }) }))} />
+              </div>
+              <div className="fine-print">
+                {hs.strokes > 0
+                  ? `${receiverName} gets ${hs.strokes} stroke${hs.strokes > 1 ? 's' : ''} (auto, from current handicaps)`
+                  : 'Handicaps are even — no strokes given'}
+              </div>
             </div>
-            <div className="row2">
-              <select
-                className="input"
-                value={m.receiver}
-                onChange={(e) => setConfigKey('round3', (r3) => ({ ...r3, matches: upd(r3.matches, i, { receiver: e.target.value }) }))}
-              >
-                {[m.p1, m.p2].map((id) => (
-                  <option key={id} value={id}>{players.find((p) => p.id === id)?.name || id} gets strokes</option>
-                ))}
-              </select>
-              <NumField
-                value={m.strokes}
-                min={0} max={18}
-                onCommit={(v) => setConfigKey('round3', (r3) => ({ ...r3, matches: upd(r3.matches, i, { strokes: v }) }))}
-              />
-            </div>
-          </div>
-        ))}
+          );
+        })}
+        <div className="fine-print">
+          Strokes given recalculate automatically whenever either player's handicap
+          changes. Only the matchups (who plays whom) are set here.
+        </div>
         <div className="row2">
           <span className="label">Win / halve points</span>
           <div className="row2">
@@ -585,15 +582,3 @@ function YdsField({ value, onCommit }) {
 }
 
 const upd = (arr, i, patch) => arr.map((x, xi) => (xi === i ? { ...x, ...patch } : x));
-
-// Swap a match participant; if the outgoing player was the stroke receiver,
-// the incoming player inherits the strokes (otherwise they'd silently apply
-// to nobody).
-function updMatchPlayer(matches, i, slot, playerId) {
-  return matches.map((m, mi) => {
-    if (mi !== i) return m;
-    const next = { ...m, [slot]: playerId };
-    if (m.receiver === m[slot]) next.receiver = playerId;
-    return next;
-  });
-}

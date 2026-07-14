@@ -24,9 +24,12 @@ export default function MyCard({ me }) {
   const entity = activeRound === 2 ? myTeam?.id : me;
   const holeScores = scores[activeRound]?.[entity] || {};
 
-  // Handicap context per round.
+  // Handicap context per round. Round 3 strokes are computed live from
+  // current handicaps (see matchHandicapStrokes) — never stored, so a
+  // handicap change is reflected on the card immediately.
   const match = activeRound === 3 ? config.round3.matches.find((m) => m.p1 === me || m.p2 === me) : null;
-  const matchStrokes = match && match.receiver === me ? match.strokes || 0 : 0;
+  const mst = match ? matchState(config, scores, match) : null;
+  const matchStrokes = mst && mst.receiver === me ? mst.strokes : 0;
   const useHandicap = activeRound !== 2;
   const handicap = activeRound === 1 ? player?.handicap || 0 : activeRound === 3 ? matchStrokes : 0;
 
@@ -46,7 +49,6 @@ export default function MyCard({ me }) {
   };
 
   const soloId = config.round1.soloTeams?.[myTeam?.id];
-  const mst = match ? matchState(config, scores, match) : null;
   const opponent = match ? config.players.find((p) => p.id === (match.p1 === me ? match.p2 : match.p1)) : null;
 
   if (!player) return <div className="screen pad">Pick who you are in Settings.</div>;
