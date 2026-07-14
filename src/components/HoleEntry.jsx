@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { ScoreBadge, RelChip } from './Badge.jsx';
-import { strokesOnHole } from '../lib/scoring.js';
+import { strokesOnHole, ordinalWord } from '../lib/scoring.js';
 
 // Focused entry card for one hole: big par/SI header, tappable score
 // bubbles plus a +/- stepper, gross badge and net result. Entering a score
@@ -113,7 +113,7 @@ export default function HoleEntry({
         </div>
       </div>
       {strokes === maxScore && (
-        <div className="he-max">{ordinalWord(maxOverPar)} MAX — PICK IT UP</div>
+        <div className="he-max">{ordinalWord(maxOverPar).toUpperCase()} MAX — PICK IT UP</div>
       )}
 
       {reaction && (
@@ -123,9 +123,6 @@ export default function HoleEntry({
   );
 }
 
-const ORDINALS = ['', 'BOGEY', 'DOUBLE', 'TRIPLE', 'QUADRUPLE', 'QUINTUPLE', 'SEXTUPLE'];
-const ordinalWord = (n) => ORDINALS[n] || `${n}X`;
-
 const UNDER_PAR_LABELS = { '-3': 'ALBATROSS!', '-2': 'EAGLE!', '-1': 'BIRDIE!' };
 
 // Label for a score's distance from par, aware of the round's pick-up cap
@@ -134,8 +131,9 @@ const UNDER_PAR_LABELS = { '-3': 'ALBATROSS!', '-2': 'EAGLE!', '-1': 'BIRDIE!' }
 function labelFor(diff, maxOverPar) {
   if (diff === 0) return 'PAR';
   if (diff < 0) return UNDER_PAR_LABELS[String(Math.max(-3, diff))] ?? UNDER_PAR_LABELS['-3'];
-  if (diff === maxOverPar) return `${ordinalWord(diff)} — OUCH`;
-  return diff === 1 ? 'BOGEY' : `${ordinalWord(diff)} BOGEY`;
+  const word = ordinalWord(diff).toUpperCase();
+  if (diff === maxOverPar) return `${word} — OUCH`;
+  return diff === 1 ? 'BOGEY' : `${word} BOGEY`;
 }
 
 // One-shot celebration/commiseration overlay; intensity scales with |diff|.

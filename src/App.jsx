@@ -4,6 +4,7 @@ import Zia from './components/Zia.jsx';
 import Home from './screens/Home.jsx';
 import MyCard from './screens/MyCard.jsx';
 import Rounds from './screens/Rounds.jsx';
+import Scoring from './screens/Scoring.jsx';
 import Rules from './screens/Rules.jsx';
 import Settings from './screens/Settings.jsx';
 
@@ -54,6 +55,7 @@ function Shell() {
         {tab === 'home' && <Home />}
         {tab === 'card' && <MyCard me={me} />}
         {tab === 'rounds' && <Rounds />}
+        {tab === 'scoring' && <Scoring />}
         {tab === 'rules' && <Rules />}
         {tab === 'settings' && <Settings me={me} setMe={setMe} />}
       </main>
@@ -61,6 +63,7 @@ function Shell() {
         <NavBtn id="home" tab={tab} setTab={setTab} label="Live" icon="◉" />
         <NavBtn id="card" tab={tab} setTab={setTab} label="Card" icon="✎" />
         <NavBtn id="rounds" tab={tab} setTab={setTab} label="Rounds" icon="⛳" />
+        <NavBtn id="scoring" tab={tab} setTab={setTab} label="Scoring" icon="∑" />
         <NavBtn id="rules" tab={tab} setTab={setTab} label="Rules" icon="§" />
         <NavBtn id="settings" tab={tab} setTab={setTab} label="Setup" icon="⚙" />
       </nav>

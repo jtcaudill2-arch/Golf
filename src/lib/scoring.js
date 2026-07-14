@@ -123,6 +123,11 @@ export function assignPoints(ranked, pointTable, key) {
 // and split ties).
 export const fmtPts = (n) => (n % 1 === 0 ? String(n) : n.toFixed(1));
 
+// Word for "n strokes over par" (1 = bogey, 2 = double, ...), shared by the
+// score-entry cap message/reaction and the Scoring explainer tab.
+const ORDINALS = ['', 'Bogey', 'Double', 'Triple', 'Quadruple', 'Quintuple', 'Sextuple'];
+export const ordinalWord = (n) => ORDINALS[n] || `${n}x`;
+
 // Total yardage for a hole list whose yds are already tee-resolved.
 export const totalYds = (holes) => holes.reduce((s, h) => s + (h.yds || 0), 0);
 

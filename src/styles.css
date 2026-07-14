@@ -231,6 +231,13 @@ code { color: var(--turquoise); }
 .lb-leader.lb-member .lb-name { color: var(--sand); text-shadow: none; }
 .hcp { font-size: 11px; color: var(--sand-dim); font-weight: 400; }
 
+/* scoring explainer */
+.scoring-card { padding: 14px 16px; line-height: 1.55; }
+.scoring-card-title { margin: 0 0 8px; }
+.scoring-card p { margin: 8px 0; }
+.scoring-card b { color: var(--sand); }
+.stat-card-inline { margin: 4px 0 10px; }
+
 /* stat card (Round 1 team) */
 .stat-card { padding: 6px 12px; }
 .stat-row {
