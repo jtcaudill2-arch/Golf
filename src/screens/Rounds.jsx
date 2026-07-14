@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useStore } from '../lib/store.jsx';
 import {
   round1Results, round1TeamResults, round2Results, round3Results,
-  holesForRound, coursePar,
+  holesForRound, coursePar, selectedTee,
 } from '../lib/scoring.js';
 import Zia from '../components/Zia.jsx';
 import { RelChip } from '../components/Badge.jsx';
@@ -35,7 +35,7 @@ function Round1() {
 
   return (
     <>
-      <RoundHeader title={config.round1.name} holes={holes} />
+      <RoundHeader title={config.round1.name} holes={holes} tee={selectedTee(config.courses, 'paako')} />
       <div className="chip-row">
         {groups.map((g, i) => (
           <div key={i} className="chip">G{i + 1}: {g.map(nameOf).join(', ')}</div>
@@ -83,7 +83,7 @@ function Round2() {
 
   return (
     <>
-      <RoundHeader title={config.round2.name} holes={holes} />
+      <RoundHeader title={config.round2.name} holes={holes} tee={selectedTee(config.courses, 'paako')} />
       <div className="chip-row">
         {(config.round2.matchups || []).map((m, i) => (
           <div key={i} className="chip">{teamName(m[0])} vs {teamName(m[1])}</div>
@@ -123,7 +123,7 @@ function Round3() {
 
   return (
     <>
-      <RoundHeader title={config.round3.name} holes={holes} />
+      <RoundHeader title={config.round3.name} holes={holes} tee={selectedTee(config.courses, 'blackmesa')} />
       {matches.map((m) => (
         <div key={m.id} className="card match-card">
           <div className="match-players">
@@ -170,7 +170,7 @@ function Round3() {
   );
 }
 
-function RoundHeader({ title, holes }) {
+function RoundHeader({ title, holes, tee }) {
   const yds = holes.reduce((s, h) => s + (h.yds || 0), 0);
   return (
     <div className="round-header">
@@ -178,6 +178,7 @@ function RoundHeader({ title, holes }) {
       <div className="rh-sub">
         Par {coursePar(holes)}
         {yds > 0 && ` · ${yds.toLocaleString()} yds`}
+        {tee && ` · ${tee.name} tees`}
       </div>
     </div>
   );

@@ -2,9 +2,17 @@
 // stored in the Supabase `config` table. COURSES_VERSION forces a one-time
 // upgrade of the courses config on databases seeded from older defaults.
 
-export const COURSES_VERSION = 2;
+export const COURSES_VERSION = 3;
 
-const hole = (n, par, si, yds) => ({ hole: n, par, si, yds });
+// Yardage is stored per tee set: yds = { black: 433, blue: 410, ... }.
+// Only the Black tees have published hole-by-hole numbers; other tees are
+// filled in from the printed card on site.
+const hole = (n, par, si, blackYds) => ({
+  hole: n,
+  par,
+  si,
+  yds: blackYds != null ? { black: blackYds } : {},
+});
 
 // Placeholder nine: par 4s, SI 1-9, no yardage — to be corrected on site.
 const placeholderNine = () =>
@@ -32,6 +40,17 @@ export const DEFAULT_COURSES = {
   version: COURSES_VERSION,
   paako: {
     name: 'Paako Ridge',
+    // Real Paako tee sets (18-hole totals): Black 7,562 · Blue 7,218 ·
+    // Green 6,727 · Brown 6,265 · Gray 5,755 · Turquoise 4,773.
+    selectedTee: 'black',
+    tees: [
+      { id: 'black', name: 'Black' },
+      { id: 'blue', name: 'Blue' },
+      { id: 'green', name: 'Green' },
+      { id: 'brown', name: 'Brown' },
+      { id: 'gray', name: 'Gray' },
+      { id: 'turquoise', name: 'Turquoise' },
+    ],
     nines: {
       // Nine 1 (holes 1-9): official card, Black tees — par 36, 3,727 yds.
       nine1: {
@@ -57,9 +76,17 @@ export const DEFAULT_COURSES = {
     },
   },
   // Black Mesa: official card, Black tees — par 72, 7,307 yds.
+  // The club has 5 tee boxes (5,157–7,307 yds); only Black publishes
+  // hole-by-hole yardage. Rename the others to match the card on site.
   blackmesa: {
     name: 'Black Mesa',
     verified: true,
+    selectedTee: 'black',
+    tees: [
+      { id: 'black', name: 'Black' },
+      { id: 'tee2', name: 'Middle (rename)' },
+      { id: 'tee3', name: 'Forward (rename)' },
+    ],
     holes: [
       hole(1, 4, 7, 385),
       hole(2, 4, 11, 404),

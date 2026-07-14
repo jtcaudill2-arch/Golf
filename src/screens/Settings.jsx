@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useStore } from '../lib/store.jsx';
-import { paakoHoles, blackMesaHoles, coursePar } from '../lib/scoring.js';
+import { paakoHoles, blackMesaHoles, coursePar, selectedTee, ydsForTee } from '../lib/scoring.js';
 
 // Every adjustable knob in the app. All edits write to Supabase config and
 // broadcast to every phone instantly. Text/number fields commit on blur.
@@ -217,6 +217,7 @@ export default function Settings({ me, setMe }) {
       </Section>
 
       <Section title="Course · Paako Ridge (three nines)">
+        <TeePicker courseKey="paako" />
         {Object.entries(config.courses.paako.nines).map(([nid, n]) => (
           <NineEditor key={nid} nineId={nid} nine={n} />
         ))}
@@ -367,9 +368,45 @@ function NineSelect({ roundKey }) {
   );
 }
 
+// Tee-set picker + editable tee names for a course ('paako' | 'blackmesa').
+function TeePicker({ courseKey }) {
+  const { config, setConfigKey } = useStore();
+  const course = config.courses[courseKey];
+  const tees = course.tees || [];
+  const tee = selectedTee(config.courses, courseKey);
+  const setCourse = (patch) =>
+    setConfigKey('courses', (c) => ({ ...c, [courseKey]: { ...c[courseKey], ...patch } }));
+  return (
+    <>
+      <h3 className="mini-title">Tees we're playing</h3>
+      <select
+        className="input"
+        value={tee?.id || ''}
+        onChange={(e) => setCourse({ selectedTee: e.target.value })}
+      >
+        {tees.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+      </select>
+      <div className="fine-print">
+        Sets which tee's yardages show on every scorecard, and which tee the YDS column
+        below edits. Tee names are editable:
+      </div>
+      <div className="points-row">
+        {tees.map((t, i) => (
+          <TextField
+            key={t.id}
+            value={t.name}
+            onCommit={(v) => setCourse({ tees: upd(tees, i, { name: v }) })}
+          />
+        ))}
+      </div>
+    </>
+  );
+}
+
 function NineEditor({ nineId, nine }) {
-  const nineYds = nine.holes.reduce((s, h) => s + (h.yds || 0), 0);
-  const { setConfigKey } = useStore();
+  const { config, setConfigKey } = useStore();
+  const tee = selectedTee(config.courses, 'paako');
+  const nineYds = nine.holes.reduce((s, h) => s + (ydsForTee(h, tee?.id) || 0), 0);
   const set = (holeIdx, patch) =>
     setConfigKey('courses', (c) => ({
       ...c,
@@ -385,7 +422,7 @@ function NineEditor({ nineId, nine }) {
     <div className="nine-editor">
       <h3 className="mini-title">
         {nine.name} · Par {nine.holes.reduce((s, h) => s + h.par, 0)}
-        {nineYds > 0 && ` · ${nineYds.toLocaleString()} yds`}
+        {nineYds > 0 && ` · ${nineYds.toLocaleString()} yds (${tee?.name})`}
       </h3>
       {nine.verified === false && (
         <div className="notice">
@@ -393,36 +430,50 @@ function NineEditor({ nineId, nine }) {
           yards from the printed card on site.
         </div>
       )}
-      <HoleTable holes={nine.holes} onSet={set} />
+      <HoleTable holes={nine.holes} onSet={set} tee={tee} />
     </div>
   );
 }
 
 function BlackMesaEditor() {
   const { config, setConfigKey } = useStore();
+  const tee = selectedTee(config.courses, 'blackmesa');
   const holes = config.courses.blackmesa.holes;
   const set = (holeIdx, patch) =>
     setConfigKey('courses', (c) => ({
       ...c,
       blackmesa: { ...c.blackmesa, holes: upd(c.blackmesa.holes, holeIdx, patch) },
     }));
-  const totalYds = holes.reduce((s, h) => s + (h.yds || 0), 0);
+  const totalYds = holes.reduce((s, h) => s + (ydsForTee(h, tee?.id) || 0), 0);
   return (
     <>
       <h3 className="mini-title">
         Black Mesa · Par {coursePar(blackMesaHoles(config.courses))}
-        {totalYds > 0 && ` · ${totalYds.toLocaleString()} yds`}
+        {totalYds > 0 && ` · ${totalYds.toLocaleString()} yds (${tee?.name})`}
       </h3>
-      <div className="fine-print">Official card, Black tees (golfblackmesa.com).</div>
-      <HoleTable holes={holes} onSet={set} />
+      <div className="fine-print">
+        Black tees are the official card (golfblackmesa.com). Other tees: enter yardages
+        from the printed card and rename them to match.
+      </div>
+      <TeePicker courseKey="blackmesa" />
+      <HoleTable holes={holes} onSet={set} tee={tee} />
     </>
   );
 }
 
-function HoleTable({ holes, onSet }) {
+function HoleTable({ holes, onSet, tee }) {
+  // Merge a yardage edit into the per-tee yds map, converting any legacy
+  // plain-number yds into the map form.
+  const setYds = (h, i, v) => {
+    const base = h.yds && typeof h.yds === 'object' ? h.yds : {};
+    onSet(i, { yds: { ...base, [tee?.id || 'black']: v } });
+  };
   return (
     <div className="hole-table">
-      <div className="ht-row ht-head"><span>#</span><span>PAR</span><span>INDEX</span><span>YDS</span></div>
+      <div className="ht-row ht-head">
+        <span>#</span><span>PAR</span><span>INDEX</span>
+        <span>YDS{tee ? ` · ${tee.name.toUpperCase()}` : ''}</span>
+      </div>
       {holes.map((h, i) => (
         <div key={h.hole} className="ht-row">
           <span className="ht-num">{h.hole}</span>
@@ -434,7 +485,7 @@ function HoleTable({ holes, onSet }) {
             ))}
           </div>
           <NumField value={h.si} min={1} max={18} onCommit={(v) => onSet(i, { si: v })} />
-          <YdsField value={h.yds} onCommit={(v) => onSet(i, { yds: v })} />
+          <YdsField value={ydsForTee(h, tee?.id)} onCommit={(v) => setYds(h, i, v)} />
         </div>
       ))}
     </div>

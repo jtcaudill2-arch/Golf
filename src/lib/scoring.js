@@ -15,21 +15,47 @@ export function withEffectiveSI(holes) {
   return holes.map((h, i) => ({ ...h, effSi: eff[i] }));
 }
 
-// 18 holes for a Paako round from the two selected nines.
+// Yardage for a hole from a given tee set. Tolerates the legacy shape where
+// yds was a plain number (treated as the value for every tee).
+export function ydsForTee(h, teeId) {
+  if (h.yds == null) return null;
+  if (typeof h.yds === 'number') return h.yds;
+  return h.yds[teeId] ?? null;
+}
+
+// The tee set currently selected for a course ('paako' | 'blackmesa').
+export function selectedTee(courses, courseKey) {
+  const c = courses[courseKey];
+  if (!c?.tees?.length) return null;
+  return c.tees.find((t) => t.id === c.selectedTee) || c.tees[0];
+}
+
+// 18 holes for a Paako round from the two selected nines, with yardage
+// resolved from the selected tee set.
 export function paakoHoles(courses, nineIds) {
+  const tee = selectedTee(courses, 'paako');
   const holes = [];
   nineIds.forEach((id, ni) => {
     const n = courses.paako.nines[id];
     if (!n) return;
     n.holes.forEach((h, hi) => {
-      holes.push({ ...h, hole: ni * 9 + hi + 1, nineName: n.name, nineHole: h.hole });
+      holes.push({
+        ...h,
+        hole: ni * 9 + hi + 1,
+        nineName: n.name,
+        nineHole: h.hole,
+        yds: ydsForTee(h, tee?.id),
+      });
     });
   });
   return withEffectiveSI(holes);
 }
 
 export function blackMesaHoles(courses) {
-  return withEffectiveSI(courses.blackmesa.holes);
+  const tee = selectedTee(courses, 'blackmesa');
+  return withEffectiveSI(
+    courses.blackmesa.holes.map((h) => ({ ...h, yds: ydsForTee(h, tee?.id) }))
+  );
 }
 
 export function holesForRound(config, roundId) {
