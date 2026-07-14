@@ -300,3 +300,25 @@ export function overallStandings(config, scores) {
   });
   return rows;
 }
+
+// Team leaderboard: each team's total is the sum of its two players' points,
+// with the per-player breakdown kept for display underneath the team row.
+export function teamStandings(config, scores) {
+  const players = overallStandings(config, scores);
+  const rows = config.teams.map((t) => {
+    const members = t.players
+      .map((pid) => players.find((p) => p.id === pid))
+      .filter(Boolean);
+    return {
+      id: t.id,
+      name: t.name,
+      members,
+      total: members.reduce((s, m) => s + m.total, 0),
+    };
+  });
+  rows.sort((a, b) => b.total - a.total);
+  rows.forEach((r, i) => {
+    r.rank = i > 0 && rows[i - 1].total === r.total ? rows[i - 1].rank : i + 1;
+  });
+  return rows;
+}

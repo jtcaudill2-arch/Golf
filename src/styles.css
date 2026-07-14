@@ -179,6 +179,22 @@ code { color: var(--turquoise); }
   box-shadow: 2px 0 0 var(--gold) inset;
 }
 .lb-leader .lb-name { color: var(--gold); text-shadow: 0 0 14px rgba(217, 178, 74, 0.35); }
+
+/* team-grouped standings */
+.lb-team td { border-bottom: none; padding-bottom: 2px; }
+.lb-team .lb-name {
+  font-family: var(--display); font-size: 16px; letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.lb-member td {
+  border-bottom: none; padding-top: 2px; padding-bottom: 4px;
+  font-size: 13px; color: var(--sand-dim);
+}
+.lb-member .lb-member-name { font-weight: 400; padding-left: 14px; color: var(--sand); }
+.lb-member-total { font-family: var(--display); font-weight: 600; color: var(--sand-dim); }
+.lb-member:nth-of-type(3n) td { border-bottom: 1px solid rgba(42, 49, 56, 0.6); padding-bottom: 9px; }
+.lb tr:last-child td { border-bottom: none; }
+.lb-leader.lb-member .lb-name { color: var(--sand); text-shadow: none; }
 .hcp { font-size: 11px; color: var(--sand-dim); font-weight: 400; }
 
 /* stat card (Round 1 team) */

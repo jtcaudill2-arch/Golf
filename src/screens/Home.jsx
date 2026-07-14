@@ -1,12 +1,12 @@
 import React from 'react';
 import { useStore } from '../lib/store.jsx';
-import { overallStandings, round1TeamResults } from '../lib/scoring.js';
+import { teamStandings, round1TeamResults } from '../lib/scoring.js';
 import Zia from '../components/Zia.jsx';
 import MesaHero from '../components/MesaHero.jsx';
 
 export default function Home() {
   const { config, scores, status } = useStore();
-  const standings = overallStandings(config, scores);
+  const standings = teamStandings(config, scores);
   const teamCard = round1TeamResults(config, scores);
   const anyPoints = standings.some((r) => r.total > 0);
 
@@ -27,7 +27,7 @@ export default function Home() {
           <thead>
             <tr>
               <th></th>
-              <th className="lb-name">PLAYER</th>
+              <th className="lb-name">TEAM</th>
               <th>R1</th>
               <th>R2</th>
               <th>R3</th>
@@ -36,24 +36,37 @@ export default function Home() {
             </tr>
           </thead>
           <tbody>
-            {standings.map((r) => (
-              <tr key={r.id} className={r.rank === 1 && anyPoints ? 'lb-leader' : ''}>
-                <td className="lb-rank">
-                  {r.rank === 1 && anyPoints ? <Zia size={20} /> : r.rank}
-                </td>
-                <td className="lb-name">{r.name}</td>
-                <td>{fmt(r.r1)}</td>
-                <td>{fmt(r.r2)}</td>
-                <td>{fmt(r.r3)}</td>
-                {config.round1.teamBonusEnabled && <td>{fmt(r.bonus)}</td>}
-                <td className="lb-total">{fmt(r.total)}</td>
-              </tr>
-            ))}
+            {standings.map((t) => {
+              const cols = config.round1.teamBonusEnabled ? 4 : 3;
+              const leader = t.rank === 1 && anyPoints;
+              return (
+                <React.Fragment key={t.id}>
+                  <tr className={`lb-team ${leader ? 'lb-leader' : ''}`}>
+                    <td className="lb-rank">{leader ? <Zia size={20} /> : t.rank}</td>
+                    <td className="lb-name">{t.name}</td>
+                    <td colSpan={cols}></td>
+                    <td className="lb-total">{fmt(t.total)}</td>
+                  </tr>
+                  {t.members.map((m) => (
+                    <tr key={m.id} className={`lb-member ${leader ? 'lb-leader' : ''}`}>
+                      <td></td>
+                      <td className="lb-name lb-member-name">{m.name}</td>
+                      <td>{fmt(m.r1)}</td>
+                      <td>{fmt(m.r2)}</td>
+                      <td>{fmt(m.r3)}</td>
+                      {config.round1.teamBonusEnabled && <td>{fmt(m.bonus)}</td>}
+                      <td className="lb-member-total">{fmt(m.total)}</td>
+                    </tr>
+                  ))}
+                </React.Fragment>
+              );
+            })}
           </tbody>
         </table>
       </div>
       <div className="fine-print">
-        Points update live as scores come in — unfinished rounds show projected points.
+        Team points = both players' points combined. Updates live — unfinished rounds
+        show projected points.
       </div>
 
       <h2 className="section-title">ROUND 1 · TEAM</h2>
