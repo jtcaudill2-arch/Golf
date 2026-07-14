@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useStore } from '../lib/store.jsx';
-import { paakoHoles, blackMesaHoles, coursePar, selectedTee, ydsForTee, matchHandicapStrokes } from '../lib/scoring.js';
+import { paakoHoles, blackMesaHoles, coursePar, selectedTee, ydsForTee, matchHandicapStrokes, capPhrase } from '../lib/scoring.js';
+import { DEFAULT_MAX_OVER_PAR, HANDICAP_MIN, HANDICAP_MAX } from '../lib/defaults.js';
 
 // Every adjustable knob in the app. All edits write to Supabase config and
 // broadcast to every phone instantly. Text/number fields commit on blur.
@@ -52,7 +53,7 @@ export default function Settings({ me, setMe }) {
             />
             <NumField
               value={p.handicap}
-              min={0} max={54}
+              min={HANDICAP_MIN} max={HANDICAP_MAX}
               onCommit={(v) => setConfigKey('players', (ps) => upd(ps, i, { handicap: v }))}
             />
           </div>
@@ -165,7 +166,7 @@ export default function Settings({ me, setMe }) {
         <div className="fine-print">
           "Teammate isn't playing" toggles live on each player's Round 1 scorecard.
         </div>
-        <MaxOverPar roundKey="round1" fallback={4} />
+        <MaxOverPar roundKey="round1" />
       </Section>
 
       <Section title="Round 2 · Scramble (Paako Ridge)">
@@ -199,7 +200,7 @@ export default function Settings({ me, setMe }) {
             setConfigKey('round2', (r2) => ({ ...r2, points: r2.points.map((x, xi) => (xi === i ? v : x)) }))
           }
         />
-        <MaxOverPar roundKey="round2" fallback={3} />
+        <MaxOverPar roundKey="round2" />
       </Section>
 
       <Section title="Round 3 · Match play (Black Mesa)">
@@ -235,7 +236,7 @@ export default function Settings({ me, setMe }) {
               onCommit={(v) => setConfigKey('round3', (r3) => ({ ...r3, halvePoints: v }))} />
           </div>
         </div>
-        <MaxOverPar roundKey="round3" fallback={3} />
+        <MaxOverPar roundKey="round3" />
       </Section>
 
       <Section title="Course · Paako Ridge (three nines)">
@@ -298,9 +299,10 @@ function MyTeamName({ me }) {
 
 // Pick-up cap for a round's scorecards (e.g. 3 = triple bogey max,
 // 4 = quadruple bogey max). Read live by HoleEntry on every card.
-function MaxOverPar({ roundKey, fallback }) {
+function MaxOverPar({ roundKey }) {
   const { config, setConfigKey } = useStore();
-  const value = config[roundKey].maxOverPar ?? fallback;
+  const roundNum = Number(roundKey.replace('round', ''));
+  const value = config[roundKey].maxOverPar ?? DEFAULT_MAX_OVER_PAR[roundNum] ?? 3;
   return (
     <>
       <h3 className="mini-title">Max score per hole (pick-up rule)</h3>
@@ -310,7 +312,7 @@ function MaxOverPar({ roundKey, fallback }) {
         onCommit={(v) => setConfigKey(roundKey, (r) => ({ ...r, maxOverPar: v }))}
       />
       <div className="fine-print">
-        Strokes over par allowed before pick-up — {value} = {['', 'bogey', 'double bogey', 'triple bogey', 'quadruple bogey', 'quintuple bogey'][value] || `${value}x bogey`} max.
+        Strokes over par allowed before pick-up — {value} = {capPhrase(value)} max.
       </div>
     </>
   );

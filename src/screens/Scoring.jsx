@@ -1,6 +1,7 @@
 import React from 'react';
 import { useStore } from '../lib/store.jsx';
-import { ordinalWord, fmtPts, matchHandicapStrokes } from '../lib/scoring.js';
+import { fmtPts, matchHandicapStrokes, capPhrase, describeStrokeAllocation } from '../lib/scoring.js';
+import { DEFAULT_MAX_OVER_PAR } from '../lib/defaults.js';
 import Zia from '../components/Zia.jsx';
 
 // A plain-English breakdown of every scoring rule in the app. Every number
@@ -11,8 +12,15 @@ import Zia from '../components/Zia.jsx';
 export default function Scoring() {
   const { config } = useStore();
   const { players } = config;
+  if (!players.length) {
+    return <div className="screen pad">Add players in Settings to see scoring examples.</div>;
+  }
   const lowHcp = players.reduce((a, b) => (b.handicap < a.handicap ? b : a), players[0]);
   const highHcp = players.reduce((a, b) => (b.handicap > a.handicap ? b : a), players[0]);
+  const maxFor = (roundKey) => {
+    const n = Number(roundKey.replace('round', ''));
+    return config[roundKey].maxOverPar ?? DEFAULT_MAX_OVER_PAR[n] ?? 3;
+  };
 
   return (
     <div className="screen">
@@ -36,12 +44,13 @@ export default function Scoring() {
         {highHcp.id !== lowHcp.id && <ExampleRow player={highHcp} />}
         <p className="fine-print">
           On your scorecard, a gold dot under the hole number marks where you get a stroke, and
-          your "net" for that hole already has it subtracted. Add up all 18 holes and it's the
-          same as gross minus your full handicap — that total is what's used for ranking.
+          the small number under your score shows that hole's result relative to par after the
+          stroke. Your Round 1 ranking uses the simpler total shown at the bottom of your
+          scorecard as NET: gross score minus your full handicap.
         </p>
       </Card>
 
-      <Card title="Round 1 — Individual net (Paako Ridge)">
+      <Card title={config.round1.name}>
         <p>
           Every player plays their own ball. <b>Net score = 18-hole gross total − your full
           handicap.</b> Lowest net wins the round.
@@ -52,9 +61,8 @@ export default function Scoring() {
 
         <h3 className="mini-title">Max score per hole</h3>
         <p>
-          {ordinalWord(config.round1.maxOverPar)} bogey max — once your gross score on a hole
-          hits par + {config.round1.maxOverPar}, pick up. The app won't let you enter anything
-          higher.
+          {capPhrase(maxFor('round1'))} max — once your gross score on a hole hits par +{' '}
+          {maxFor('round1')}, pick up. The app won't let you enter anything higher.
         </p>
 
         <h3 className="mini-title">Round 1 team score</h3>
@@ -80,7 +88,7 @@ export default function Scoring() {
         {config.round1.teamBonusEnabled && <RankChips values={config.round1.teamPoints || []} />}
       </Card>
 
-      <Card title="Round 2 — 2-man scramble (Paako Ridge)">
+      <Card title={config.round2.name}>
         <p>
           Both partners tee off, pick the better shot, and play from there together — repeat
           until it's holed. <b>One gross score per team per hole, no handicap.</b> Straight
@@ -91,12 +99,12 @@ export default function Scoring() {
         <p className="fine-print">Both players on the team earn these points — it counts twice toward the overall standings.</p>
         <h3 className="mini-title">Max score per hole</h3>
         <p>
-          {ordinalWord(config.round2.maxOverPar)} bogey max, same rule as the other rounds — just
-          applied to the team's one shared score.
+          {capPhrase(maxFor('round2'))} max, same rule as the other rounds — just applied to the
+          team's one shared score.
         </p>
       </Card>
 
-      <Card title="Round 3 — Match play (Black Mesa)">
+      <Card title={config.round3.name}>
         <p>
           Head to head, hole by hole. Win a hole = 1 up; the match is decided by who's ahead
           when there aren't enough holes left to catch up — a "3&amp;2" win means 3 up with 2
@@ -114,11 +122,12 @@ export default function Scoring() {
           {config.round3.matches.map((m) => {
             const p1 = players.find((p) => p.id === m.p1);
             const p2 = players.find((p) => p.id === m.p2);
+            if (!p1 || !p2) return null;
             const hs = matchHandicapStrokes(config, m);
             const recv = hs.receiver ? players.find((p) => p.id === hs.receiver) : null;
             return (
               <div key={m.id} className="stat-row">
-                <span className="stat-name">{p1?.name} vs {p2?.name}</span>
+                <span className="stat-name">{p1.name} vs {p2.name}</span>
                 <span className="stat-value">{hs.strokes > 0 ? `${recv?.name} +${hs.strokes}` : 'even'}</span>
               </div>
             );
@@ -132,7 +141,7 @@ export default function Scoring() {
         </div>
         <p className="fine-print">Win/loss points go to that player individually, not split with their partner.</p>
         <h3 className="mini-title">Max score per hole</h3>
-        <p>{ordinalWord(config.round3.maxOverPar)} bogey max, same rule as the other rounds.</p>
+        <p>{capPhrase(maxFor('round3'))} max, same rule as the other rounds.</p>
       </Card>
 
       <Card title="Overall standings">
@@ -169,19 +178,9 @@ function Card({ title, children }) {
 function ExampleRow({ player }) {
   return (
     <p>
-      <b>{player.name}</b> (HCP {player.handicap}) {describeHandicap(player.handicap)}
+      <b>{player.name}</b> (HCP {player.handicap}) gets {describeStrokeAllocation(player.handicap)}.
     </p>
   );
-}
-
-function describeHandicap(hcp) {
-  const full = Math.floor(hcp / 18);
-  const rem = hcp % 18;
-  if (hcp === 0) return 'gets no strokes — plays every hole straight up.';
-  if (rem === 0) return `gets ${full} stroke${full > 1 ? 's' : ''} on every hole.`;
-  const hardest = `the hardest ${rem} hole${rem > 1 ? 's' : ''} (stroke index 1–${rem})`;
-  if (full === 0) return `gets 1 stroke on ${hardest}, and none on the rest.`;
-  return `gets ${full + 1} strokes on ${hardest}, and ${full} on the other ${18 - rem} holes.`;
 }
 
 function RankChips({ values }) {

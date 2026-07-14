@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { useStore } from '../lib/store.jsx';
 import {
   round1Results, round1TeamResults, round2Results, round3Results,
-  coursePar, selectedTee, fmtPts,
+  coursePar, selectedTee, fmtPts, describeStrokeAllocation,
 } from '../lib/scoring.js';
 import Zia from '../components/Zia.jsx';
 import { RelChip } from '../components/Badge.jsx';
@@ -140,7 +140,7 @@ function Round3() {
           </div>
           {m.strokes > 0 && (
             <div className="fine-print">
-              {config.players.find((p) => p.id === m.receiver)?.name} gets {m.strokes} stroke{m.strokes > 1 ? 's' : ''} (hardest {m.strokes} holes)
+              {config.players.find((p) => p.id === m.receiver)?.name} gets {describeStrokeAllocation(m.strokes)}
             </div>
           )}
           <div className={`match-banner ${m.state.done ? 'match-done' : ''}`}>{m.state.status}</div>

@@ -128,6 +128,27 @@ export const fmtPts = (n) => (n % 1 === 0 ? String(n) : n.toFixed(1));
 const ORDINALS = ['', 'Bogey', 'Double', 'Triple', 'Quadruple', 'Quintuple', 'Sextuple'];
 export const ordinalWord = (n) => ORDINALS[n] || `${n}x`;
 
+// "triple bogey" / "bogey" (not "bogey bogey") / "6x bogey" — the max-score
+// cap phrase, shared by Settings and the Scoring tab so the wording for any
+// maxOverPar value can't drift between the two screens.
+export function capPhrase(n) {
+  const word = ordinalWord(n).toLowerCase();
+  return n === 1 ? word : `${word} bogey`;
+}
+
+// English description of how a stroke count is allocated to holes by stroke
+// index (hardest first, wrapping past 18) — shared by the handicap and
+// match-play explanations so both use the same wraparound-aware wording.
+export function describeStrokeAllocation(n) {
+  const full = Math.floor(n / 18);
+  const rem = n % 18;
+  if (n === 0) return 'no strokes';
+  if (rem === 0) return `${full} stroke${full > 1 ? 's' : ''} on every hole`;
+  const hardest = `the hardest ${rem} hole${rem > 1 ? 's' : ''} (stroke index 1–${rem})`;
+  if (full === 0) return `1 stroke on ${hardest}, and none on the rest`;
+  return `${full + 1} strokes on ${hardest}, and ${full} on the other ${18 - rem} holes`;
+}
+
 // Total yardage for a hole list whose yds are already tee-resolved.
 export const totalYds = (holes) => holes.reduce((s, h) => s + (h.yds || 0), 0);
 
@@ -225,10 +246,12 @@ export function round2Results(config, scores) {
 // stale-receiver bug possible, since neither value is ever stored.
 export function matchHandicapStrokes(config, match) {
   const byId = Object.fromEntries(config.players.map((p) => [p.id, p]));
-  const h1 = Number(byId[match.p1]?.handicap ?? 0);
-  const h2 = Number(byId[match.p2]?.handicap ?? 0);
-  const diff = Math.abs(h1 - h2);
-  const receiver = diff === 0 ? null : h1 > h2 ? match.p1 : match.p2;
+  const p1 = byId[match.p1], p2 = byId[match.p2];
+  // A match referencing a player id that no longer exists has no strokes to
+  // give — don't fabricate an allowance from a phantom 0-handicap opponent.
+  if (!p1 || !p2) return { receiver: null, strokes: 0 };
+  const diff = Math.abs(p1.handicap - p2.handicap);
+  const receiver = diff === 0 ? null : p1.handicap > p2.handicap ? match.p1 : match.p2;
   return { receiver, strokes: diff };
 }
 

@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useStore } from '../lib/store.jsx';
 import { holesForRound, cardTotals, matchState } from '../lib/scoring.js';
-import { DEFAULT_MAX_OVER_PAR } from '../lib/defaults.js';
+import { DEFAULT_MAX_OVER_PAR, HANDICAP_MIN, HANDICAP_MAX } from '../lib/defaults.js';
 import HoleEntry from '../components/HoleEntry.jsx';
 import CardGrid from '../components/CardGrid.jsx';
 import { RelChip } from '../components/Badge.jsx';
@@ -43,7 +43,7 @@ export default function MyCard({ me }) {
   const myIndex = config.players.findIndex((p) => p.id === me);
   const adjustHandicap = (delta) => {
     if (myIndex === -1) return;
-    const next = Math.max(0, Math.min(54, (player?.handicap || 0) + delta));
+    const next = Math.max(HANDICAP_MIN, Math.min(HANDICAP_MAX, (player?.handicap || 0) + delta));
     if (next === player?.handicap) return;
     setConfigKey('players', (ps) => ps.map((p, i) => (i === myIndex ? { ...p, handicap: next } : p)));
   };

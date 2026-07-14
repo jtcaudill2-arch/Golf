@@ -237,6 +237,8 @@ code { color: var(--turquoise); }
 .scoring-card p { margin: 8px 0; }
 .scoring-card b { color: var(--sand); }
 .stat-card-inline { margin: 4px 0 10px; }
+.stat-card-inline .stat-row { flex-wrap: wrap; row-gap: 2px; }
+.stat-card-inline .stat-value { margin-left: auto; }
 
 /* stat card (Round 1 team) */
 .stat-card { padding: 6px 12px; }
@@ -292,15 +294,15 @@ code { color: var(--turquoise); }
 .card-owner { font-family: var(--display); font-size: 14px; letter-spacing: 1px; text-align: right; }
 
 /* quick handicap adjust, inline in the card owner line */
-.hcp-adjust { display: inline-flex; align-items: center; gap: 4px; margin-left: 4px; vertical-align: middle; }
+.hcp-adjust { display: inline-flex; align-items: center; gap: 6px; margin-left: 6px; vertical-align: middle; }
 .hcp-btn {
-  width: 22px; height: 22px; line-height: 1; border-radius: 6px; font-size: 14px; font-weight: 700;
+  width: 32px; height: 32px; line-height: 1; border-radius: 8px; font-size: 16px; font-weight: 700;
   background: linear-gradient(180deg, #21272e, #12161a);
   border: 1px solid var(--line); color: var(--turquoise); cursor: pointer;
   box-shadow: 0 1px 0 var(--line-lit) inset;
 }
 .hcp-btn:active { transform: translateY(1px); }
-.hcp-val { min-width: 18px; text-align: center; color: var(--sand); }
+.hcp-val { min-width: 20px; text-align: center; color: var(--sand); }
 
 /* score badges — classic card notation */
 .badge {

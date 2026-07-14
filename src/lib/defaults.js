@@ -191,6 +191,11 @@ export const DEFAULT_ROUND3 = {
 // existed (so an old Supabase row still gets the right cap).
 export const DEFAULT_MAX_OVER_PAR = { 1: 4, 2: 3, 3: 3 };
 
+// Valid handicap range, shared by the Settings editor and the scorecard's
+// quick +/- stepper so they can never disagree on the bounds.
+export const HANDICAP_MIN = 0;
+export const HANDICAP_MAX = 54;
+
 const rulesBodyV1 = `1. HAZARDS & OUT OF BOUNDS
 Drop where the ball went out or crossed into the hazard, within 2 club lengths, no nearer the hole. Add 1 penalty stroke. No re-tees, no walk of shame.
 
