@@ -47,7 +47,7 @@ function Shell() {
     <div className="app">
       <header className="topbar">
         <Zia size={22} />
-        <span className="topbar-title">ENCHANTMENT OPEN</span>
+        <span className="topbar-title">{(config.eventName || 'Cuck Cup').toUpperCase()}</span>
         <span className="topbar-sub">NM · JULY '26</span>
       </header>
       <main className="content">

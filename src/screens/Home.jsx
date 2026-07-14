@@ -2,6 +2,7 @@ import React from 'react';
 import { useStore } from '../lib/store.jsx';
 import { overallStandings, round1TeamResults } from '../lib/scoring.js';
 import Zia from '../components/Zia.jsx';
+import MesaHero from '../components/MesaHero.jsx';
 
 export default function Home() {
   const { config, scores, status } = useStore();
@@ -10,19 +11,16 @@ export default function Home() {
   const anyPoints = standings.some((r) => r.total > 0);
 
   return (
-    <div className="screen">
-      <div className="hero">
-        <Zia size={44} />
-        <div>
-          <h1 className="hero-title">ZIA CUP STANDINGS</h1>
-          <div className="hero-sub">
-            Live across all three rounds
-            <span className={`conn ${status === 'live' ? 'conn-live' : ''}`}>
-              {status === 'live' ? '● LIVE' : '○ connecting'}
-            </span>
-          </div>
+    <div className="screen screen-home">
+      <MesaHero>
+        <h1 className="mesa-title">{(config.eventName || 'Cuck Cup').toUpperCase()}</h1>
+        <div className="mesa-sub">
+          LIVE STANDINGS
+          <span className={`conn ${status === 'live' ? 'conn-live' : ''}`}>
+            {status === 'live' ? '● LIVE' : '○ connecting'}
+          </span>
         </div>
-      </div>
+      </MesaHero>
 
       <div className="table-wrap card">
         <table className="lb">

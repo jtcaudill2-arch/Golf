@@ -42,6 +42,12 @@ export default function CardGrid({
               <div className="cg-num">TOT</div>
             </td>
           </tr>
+          <tr className="cg-yds">
+            {slice.map((h) => (
+              <td key={h.hole}>{h.yds || '–'}</td>
+            ))}
+            <td>{slice.some((h) => h.yds) ? slice.reduce((s, h) => s + (h.yds || 0), 0) : '–'}</td>
+          </tr>
           <tr className="cg-par">
             {slice.map((h) => (
               <td key={h.hole}>{h.par}</td>

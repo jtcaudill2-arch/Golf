@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { createClient } from '@supabase/supabase-js';
-import { DEFAULT_CONFIG } from './defaults.js';
+import { DEFAULT_CONFIG, LEGACY_RULES } from './defaults.js';
 
 const url = import.meta.env.VITE_SUPABASE_URL;
 const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -38,6 +38,20 @@ export function StoreProvider({ children }) {
           await supabase.from('config').upsert(rows, { ignoreDuplicates: true });
           for (const k of missing) cfg[k] = DEFAULT_CONFIG[k];
         }
+
+        // One-time upgrades for databases seeded from older defaults:
+        // newer courses data (official scorecards) and re-titled rules text.
+        const upgrades = [];
+        if (cfg.courses && (cfg.courses.version || 0) < DEFAULT_CONFIG.courses.version) {
+          cfg.courses = DEFAULT_CONFIG.courses;
+          upgrades.push({ key: 'courses', value: cfg.courses });
+        }
+        if (cfg.rules === LEGACY_RULES) {
+          cfg.rules = DEFAULT_CONFIG.rules;
+          upgrades.push({ key: 'rules', value: cfg.rules });
+        }
+        if (upgrades.length) await supabase.from('config').upsert(upgrades);
+
         setConfig(cfg);
 
         const sc = {};

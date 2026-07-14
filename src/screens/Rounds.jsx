@@ -171,10 +171,14 @@ function Round3() {
 }
 
 function RoundHeader({ title, holes }) {
+  const yds = holes.reduce((s, h) => s + (h.yds || 0), 0);
   return (
     <div className="round-header">
       <div className="rh-title">{title}</div>
-      <div className="rh-sub">Par {coursePar(holes)}</div>
+      <div className="rh-sub">
+        Par {coursePar(holes)}
+        {yds > 0 && ` · ${yds.toLocaleString()} yds`}
+      </div>
     </div>
   );
 }

@@ -1,9 +1,14 @@
 // Default (seed) configuration. Everything here is editable in Settings and
-// stored in the Supabase `config` table — these values only apply the first
-// time the app runs against an empty database.
+// stored in the Supabase `config` table. COURSES_VERSION forces a one-time
+// upgrade of the courses config on databases seeded from older defaults.
 
-const nine = (names) =>
-  names.map((si, i) => ({ hole: i + 1, par: 4, si }));
+export const COURSES_VERSION = 2;
+
+const hole = (n, par, si, yds) => ({ hole: n, par, si, yds });
+
+// Placeholder nine: par 4s, SI 1-9, no yardage — to be corrected on site.
+const placeholderNine = () =>
+  [1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => hole(n, 4, n, null));
 
 export const DEFAULT_PLAYERS = [
   { id: 'jt', name: 'JT', handicap: 18 },
@@ -24,37 +29,56 @@ export const DEFAULT_TEAMS = [
 ];
 
 export const DEFAULT_COURSES = {
+  version: COURSES_VERSION,
   paako: {
     name: 'Paako Ridge',
     nines: {
-      nine1: { name: 'Nine 1', holes: nine([1, 2, 3, 4, 5, 6, 7, 8, 9]) },
-      nine2: { name: 'Nine 2', holes: nine([1, 2, 3, 4, 5, 6, 7, 8, 9]) },
-      nine3: { name: 'Nine 3', holes: nine([1, 2, 3, 4, 5, 6, 7, 8, 9]) },
+      // Nine 1 (holes 1-9): official card, Black tees — par 36, 3,727 yds.
+      nine1: {
+        name: 'Nine 1',
+        verified: true,
+        holes: [
+          hole(1, 4, 13, 433),
+          hole(2, 4, 11, 399),
+          hole(3, 5, 5, 608),
+          hole(4, 3, 17, 182),
+          hole(5, 5, 7, 554),
+          hole(6, 4, 15, 330),
+          hole(7, 4, 1, 493),
+          hole(8, 3, 9, 266),
+          hole(9, 4, 3, 462),
+        ],
+      },
+      // Nines 2 & 3: hole-by-hole card not published online (Nine 2 is
+      // par 36 / 3,644 yds; Nine 3 is par 36 / 3,734 yds with three each of
+      // par 3/4/5). Correct these from the printed card on site.
+      nine2: { name: 'Nine 2', verified: false, holes: placeholderNine() },
+      nine3: { name: 'Nine 3', verified: false, holes: placeholderNine() },
     },
   },
+  // Black Mesa: official card, Black tees — par 72, 7,307 yds.
   blackmesa: {
     name: 'Black Mesa',
+    verified: true,
     holes: [
-      // Front nine unconfirmed — placeholder pars/indexes, correct on site.
-      { hole: 1, par: 4, si: 1 },
-      { hole: 2, par: 4, si: 2 },
-      { hole: 3, par: 4, si: 3 },
-      { hole: 4, par: 4, si: 4 },
-      { hole: 5, par: 4, si: 5 },
-      { hole: 6, par: 4, si: 6 },
-      { hole: 7, par: 4, si: 7 },
-      { hole: 8, par: 4, si: 8 },
-      { hole: 9, par: 4, si: 9 },
-      // Back nine from the real card.
-      { hole: 10, par: 4, si: 6 },
-      { hole: 11, par: 3, si: 18 },
-      { hole: 12, par: 4, si: 12 },
-      { hole: 13, par: 5, si: 8 },
-      { hole: 14, par: 4, si: 16 },
-      { hole: 15, par: 3, si: 14 },
-      { hole: 16, par: 5, si: 4 },
-      { hole: 17, par: 4, si: 2 },
-      { hole: 18, par: 4, si: 10 },
+      hole(1, 4, 7, 385),
+      hole(2, 4, 11, 404),
+      hole(3, 5, 1, 603),
+      hole(4, 3, 13, 203),
+      hole(5, 4, 3, 496),
+      hole(6, 5, 15, 565),
+      hole(7, 4, 17, 356),
+      hole(8, 3, 5, 238),
+      hole(9, 4, 9, 440),
+      hole(10, 4, 6, 457),
+      hole(11, 3, 18, 172),
+      hole(12, 4, 12, 403),
+      hole(13, 5, 8, 591),
+      hole(14, 4, 16, 389),
+      hole(15, 3, 14, 216),
+      hole(16, 5, 4, 536),
+      hole(17, 4, 2, 424),
+      hole(18, 4, 10, 429),
     ],
   },
 };
@@ -97,9 +121,7 @@ export const DEFAULT_ROUND3 = {
   halvePoints: 7.5,
 };
 
-export const DEFAULT_RULES = `ZIA CUP — HOUSE RULES
-
-1. HAZARDS & OUT OF BOUNDS
+const rulesBody = `1. HAZARDS & OUT OF BOUNDS
 Drop where the ball went out or crossed into the hazard, within 2 club lengths, no nearer the hole. Add 1 penalty stroke. No re-tees, no walk of shame.
 
 2. MAX SCORE
@@ -117,7 +139,13 @@ Tied net/gross finishes split the point values of the tied positions.
 6. DISPUTES
 The commissioner (JT) rules on all disputes. The commissioner may be bribed with beer.`;
 
+// Kept so databases whose rules text is still the old default get upgraded
+// to the new title; user-edited rules are never touched.
+export const LEGACY_RULES = `ZIA CUP — HOUSE RULES\n\n${rulesBody}`;
+export const DEFAULT_RULES = `CUCK CUP — HOUSE RULES\n\n${rulesBody}`;
+
 export const DEFAULT_CONFIG = {
+  eventName: 'Cuck Cup',
   players: DEFAULT_PLAYERS,
   teams: DEFAULT_TEAMS,
   courses: DEFAULT_COURSES,

@@ -35,7 +35,8 @@ export default function HoleEntry({
             )}
           </div>
           <div className="he-sub">
-            PAR {hole.par} · HCP {hole.si}
+            PAR {hole.par}
+            {hole.yds ? ` · ${hole.yds} YDS` : ''} · HCP {hole.si}
             {hole.nineName ? ` · ${hole.nineName} #${hole.nineHole}` : ''}
           </div>
         </div>

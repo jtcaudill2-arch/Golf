@@ -1,4 +1,4 @@
--- Enchantment Open — Supabase schema
+-- Cuck Cup — Supabase schema
 -- Run this once in your Supabase project: SQL Editor -> New query -> paste -> Run.
 
 -- Key/value store for all adjustable settings (players, teams, courses,

@@ -14,6 +14,11 @@ export default function Settings({ me, setMe }) {
     <div className="screen settings">
       <h1 className="hero-title pad-top">SETTINGS</h1>
 
+      <Section title="Event name">
+        <TextField value={config.eventName || 'Cuck Cup'} onCommit={(v) => setConfigKey('eventName', v)} />
+        <div className="fine-print">Shown in the header and on the Live standings.</div>
+      </Section>
+
       <Section title="Who am I" open>
         <select className="input" value={me || ''} onChange={(e) => setMe(e.target.value || null)}>
           <option value="">— pick your name —</option>
@@ -216,8 +221,11 @@ export default function Settings({ me, setMe }) {
           <NineEditor key={nid} nineId={nid} nine={n} />
         ))}
         <div className="fine-print">
-          Stroke indexes can be 1–18. When two nines are combined, strokes are allocated by
-          ranking all 18 indexes (hardest first), so per-nine 1–9 indexes work fine.
+          Nine 1 is the official card (Black tees, par 36 · 3,727 yds). Nine 2 (par 36 ·
+          3,644 yds) and Nine 3 (par 36 · 3,734 yds) don't publish hole-by-hole data —
+          fill them in from the printed card. When two nines are combined, handicap strokes
+          are allocated by ranking all 18 indexes (hardest first), so per-nine 1–9 indexes
+          work fine.
         </div>
       </Section>
 
@@ -360,6 +368,7 @@ function NineSelect({ roundKey }) {
 }
 
 function NineEditor({ nineId, nine }) {
+  const nineYds = nine.holes.reduce((s, h) => s + (h.yds || 0), 0);
   const { setConfigKey } = useStore();
   const set = (holeIdx, patch) =>
     setConfigKey('courses', (c) => ({
@@ -374,7 +383,16 @@ function NineEditor({ nineId, nine }) {
     }));
   return (
     <div className="nine-editor">
-      <h3 className="mini-title">{nine.name} · Par {nine.holes.reduce((s, h) => s + h.par, 0)}</h3>
+      <h3 className="mini-title">
+        {nine.name} · Par {nine.holes.reduce((s, h) => s + h.par, 0)}
+        {nineYds > 0 && ` · ${nineYds.toLocaleString()} yds`}
+      </h3>
+      {nine.verified === false && (
+        <div className="notice">
+          Hole-by-hole card for this nine isn't published online — enter par, index and
+          yards from the printed card on site.
+        </div>
+      )}
       <HoleTable holes={nine.holes} onSet={set} />
     </div>
   );
@@ -388,10 +406,14 @@ function BlackMesaEditor() {
       ...c,
       blackmesa: { ...c.blackmesa, holes: upd(c.blackmesa.holes, holeIdx, patch) },
     }));
+  const totalYds = holes.reduce((s, h) => s + (h.yds || 0), 0);
   return (
     <>
-      <h3 className="mini-title">Black Mesa · Par {coursePar(blackMesaHoles(config.courses))}</h3>
-      <div className="fine-print">Back nine is from the real card; correct the front nine on site.</div>
+      <h3 className="mini-title">
+        Black Mesa · Par {coursePar(blackMesaHoles(config.courses))}
+        {totalYds > 0 && ` · ${totalYds.toLocaleString()} yds`}
+      </h3>
+      <div className="fine-print">Official card, Black tees (golfblackmesa.com).</div>
       <HoleTable holes={holes} onSet={set} />
     </>
   );
@@ -400,7 +422,7 @@ function BlackMesaEditor() {
 function HoleTable({ holes, onSet }) {
   return (
     <div className="hole-table">
-      <div className="ht-row ht-head"><span>#</span><span>PAR</span><span>INDEX</span></div>
+      <div className="ht-row ht-head"><span>#</span><span>PAR</span><span>INDEX</span><span>YDS</span></div>
       {holes.map((h, i) => (
         <div key={h.hole} className="ht-row">
           <span className="ht-num">{h.hole}</span>
@@ -412,9 +434,34 @@ function HoleTable({ holes, onSet }) {
             ))}
           </div>
           <NumField value={h.si} min={1} max={18} onCommit={(v) => onSet(i, { si: v })} />
+          <YdsField value={h.yds} onCommit={(v) => onSet(i, { yds: v })} />
         </div>
       ))}
     </div>
+  );
+}
+
+// Yardage input that tolerates being empty (unknown yardage stays blank).
+function YdsField({ value, onCommit }) {
+  const [v, setV] = useState(value ?? '');
+  useEffect(() => setV(value ?? ''), [value]);
+  const commit = () => {
+    if (String(v).trim() === '') { if (value != null) onCommit(null); return; }
+    const n = Math.min(999, Math.max(0, Number(v)));
+    if (!Number.isNaN(n) && n !== value) onCommit(n);
+    else setV(value ?? '');
+  };
+  return (
+    <input
+      className="input input-num"
+      type="number" inputMode="numeric"
+      min={0} max={999}
+      placeholder="–"
+      value={v}
+      onChange={(e) => setV(e.target.value)}
+      onBlur={commit}
+      onKeyDown={(e) => e.key === 'Enter' && e.target.blur()}
+    />
   );
 }
 

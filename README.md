@@ -1,4 +1,4 @@
-# Enchantment Open — Golf Bachelor Party Scoreboard
+# Cuck Cup — Golf Bachelor Party Scoreboard
 
 A mobile-first, New Mexico–themed scoring app for an 8-man golf trip:
 three rounds (individual net, 2-man scramble, 1v1 match play), live shared
@@ -26,7 +26,7 @@ npm run dev
 ## 2. Supabase (free tier)
 
 1. Go to [supabase.com](https://supabase.com) → sign in with GitHub → **New project**
-   (any name, e.g. `enchantment-open`; pick a region near New Mexico, e.g. `us-west-1`;
+   (any name, e.g. `cuck-cup`; pick a region near New Mexico, e.g. `us-west-1`;
    set any database password — you won't need it again).
 2. When the project finishes provisioning, open **SQL Editor** → **New query**,
    paste the entire contents of [`supabase/schema.sql`](supabase/schema.sql), and **Run**.
@@ -46,7 +46,7 @@ The app seeds all default data (players, courses, points, rules) on first load.
    import this repo. Framework preset auto-detects as **Vite**.
 2. Under **Environment Variables**, add `VITE_SUPABASE_URL` and
    `VITE_SUPABASE_ANON_KEY` with the values from step 2.
-3. **Deploy**. You'll get a URL like `https://enchantment-open.vercel.app` —
+3. **Deploy**. You'll get a URL like `https://cuck-cup.vercel.app` —
    text it to the group chat. Everyone picks their name on first open, and all
    scores/settings sync live to every phone.
 
