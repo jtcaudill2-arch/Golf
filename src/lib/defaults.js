@@ -156,6 +156,9 @@ export const DEFAULT_ROUND1 = {
   soloTeams: {},
   teamBonusEnabled: false,
   teamPoints: [4, 3, 2, 1],
+  // Strokes over par allowed before pick-up — Round 1 runs one gimme looser
+  // than the other rounds (quadruple bogey max instead of triple).
+  maxOverPar: 4,
 };
 
 export const DEFAULT_ROUND2 = {
@@ -166,6 +169,7 @@ export const DEFAULT_ROUND2 = {
     ['team2', 'team3'],
   ],
   points: [16, 10, 6, 2],
+  maxOverPar: 3,
 };
 
 export const DEFAULT_ROUND3 = {
@@ -178,9 +182,14 @@ export const DEFAULT_ROUND3 = {
   ],
   winPoints: 15,
   halvePoints: 7.5,
+  maxOverPar: 3,
 };
 
-const rulesBody = `1. HAZARDS & OUT OF BOUNDS
+// Fallback max-over-par per round for configs saved before this field
+// existed (so an old Supabase row still gets the right cap).
+export const DEFAULT_MAX_OVER_PAR = { 1: 4, 2: 3, 3: 3 };
+
+const rulesBodyV1 = `1. HAZARDS & OUT OF BOUNDS
 Drop where the ball went out or crossed into the hazard, within 2 club lengths, no nearer the hole. Add 1 penalty stroke. No re-tees, no walk of shame.
 
 2. MAX SCORE
@@ -198,9 +207,29 @@ Tied net/gross finishes split the point values of the tied positions.
 6. DISPUTES
 The commissioner (JT) rules on all disputes. The commissioner may be bribed with beer.`;
 
-// Kept so databases whose rules text is still the old default get upgraded
-// to the new title; user-edited rules are never touched.
-export const LEGACY_RULES = `ZIA CUP — HOUSE RULES\n\n${rulesBody}`;
+const rulesBody = `1. HAZARDS & OUT OF BOUNDS
+Drop where the ball went out or crossed into the hazard, within 2 club lengths, no nearer the hole. Add 1 penalty stroke. No re-tees, no walk of shame.
+
+2. MAX SCORE
+Triple bogey max — pick it up once you hit it. Round 1 runs one gimme looser: quadruple bogey max. (Adjustable per round in Settings.)
+
+3. GIMMES
+Inside the leather in casual play. In match play (Round 3), putts are only good when conceded by your opponent.
+
+4. HANDICAPS
+Full listed handicap, allocated by stroke index (hardest holes first). Scramble round is straight up — no strokes. Handicaps are editable anytime and apply retroactively to the whole round.
+
+5. TIES
+Tied net/gross finishes split the point values of the tied positions.
+
+6. DISPUTES
+The commissioner (JT) rules on all disputes. The commissioner may be bribed with beer.`;
+
+// Kept so databases whose rules text is still an older default get upgraded
+// to the new title/wording; user-edited rules are never touched (upgrade is
+// an exact-string match against the prior default only).
+export const LEGACY_RULES = `ZIA CUP — HOUSE RULES\n\n${rulesBodyV1}`;
+export const RULES_V1 = `CUCK CUP — HOUSE RULES\n\n${rulesBodyV1}`;
 export const DEFAULT_RULES = `CUCK CUP — HOUSE RULES\n\n${rulesBody}`;
 
 export const DEFAULT_CONFIG = {

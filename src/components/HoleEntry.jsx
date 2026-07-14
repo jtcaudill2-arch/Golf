@@ -5,20 +5,22 @@ import { strokesOnHole } from '../lib/scoring.js';
 // Focused entry card for one hole: big par/SI header, tappable score
 // bubbles plus a +/- stepper, gross badge and net result. Entering a score
 // fires a reaction that scales with how far above or below par it is —
-// confetti bursts under par, escalating shakes over par.
+// confetti bursts under par, escalating shakes over par. The pick-up cap
+// (maxOverPar) is per-round, e.g. Round 1 runs a quadruple bogey max while
+// the others run triple.
 export default function HoleEntry({
   hole,            // { hole, par, si, effSi, nineName, nineHole, name }
   strokes,
   onChange,
   handicap = 0,
   useHandicap = true,
+  maxOverPar = 3,
   onPrev,
   onNext,
 }) {
   const dots = useHandicap ? strokesOnHole(handicap, hole.effSi) : 0;
   const net = strokes != null ? strokes - dots - hole.par : null;
-  // House rules: triple bogey max — pick it up.
-  const maxScore = hole.par + 3;
+  const maxScore = hole.par + maxOverPar;
   const bubbles = Array.from({ length: maxScore }, (_, i) => i + 1);
 
   const [reaction, setReaction] = useState(null);
@@ -58,7 +60,6 @@ export default function HoleEntry({
         </div>
         <button className="he-arrow" onClick={onNext} disabled={!onNext} aria-label="Next hole">›</button>
       </div>
-
 
       <div className="he-bubbles">
         {bubbles.map((n) => (
@@ -111,29 +112,41 @@ export default function HoleEntry({
           )}
         </div>
       </div>
-      {strokes === maxScore && <div className="he-max">TRIPLE MAX — PICK IT UP</div>}
+      {strokes === maxScore && (
+        <div className="he-max">{ordinalWord(maxOverPar)} MAX — PICK IT UP</div>
+      )}
 
       {reaction && (
-        <Reaction key={reaction.id} diff={reaction.diff} onDone={() => setReaction(null)} />
+        <Reaction key={reaction.id} diff={reaction.diff} maxOverPar={maxOverPar} onDone={() => setReaction(null)} />
       )}
     </div>
   );
 }
 
-const LABELS = {
-  '-3': 'ALBATROSS!', '-2': 'EAGLE!', '-1': 'BIRDIE!',
-  0: 'PAR', 1: 'BOGEY', 2: 'DOUBLE BOGEY', 3: 'TRIPLE — OUCH',
-};
+const ORDINALS = ['', 'BOGEY', 'DOUBLE', 'TRIPLE', 'QUADRUPLE', 'QUINTUPLE', 'SEXTUPLE'];
+const ordinalWord = (n) => ORDINALS[n] || `${n}X`;
+
+const UNDER_PAR_LABELS = { '-3': 'ALBATROSS!', '-2': 'EAGLE!', '-1': 'BIRDIE!' };
+
+// Label for a score's distance from par, aware of the round's pick-up cap
+// (e.g. +3 reads "TRIPLE — OUCH" when the cap is 3, but "TRIPLE BOGEY" when
+// a looser round lets you keep going to +4).
+function labelFor(diff, maxOverPar) {
+  if (diff === 0) return 'PAR';
+  if (diff < 0) return UNDER_PAR_LABELS[String(Math.max(-3, diff))] ?? UNDER_PAR_LABELS['-3'];
+  if (diff === maxOverPar) return `${ordinalWord(diff)} — OUCH`;
+  return diff === 1 ? 'BOGEY' : `${ordinalWord(diff)} BOGEY`;
+}
 
 // One-shot celebration/commiseration overlay; intensity scales with |diff|.
-function Reaction({ diff, onDone }) {
+function Reaction({ diff, maxOverPar, onDone }) {
   useEffect(() => {
     const t = setTimeout(onDone, 1150);
     return () => clearTimeout(t);
   }, [onDone]);
 
   const mag = Math.min(3, Math.abs(diff));
-  const label = LABELS[String(Math.max(-3, Math.min(3, diff)))];
+  const label = labelFor(diff, maxOverPar);
   // Generated once per reaction (the component is remounted per reaction via
   // key), so re-renders from realtime events can't re-randomize mid-flight.
   const [particles] = useState(() => {

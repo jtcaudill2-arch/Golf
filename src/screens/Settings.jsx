@@ -165,6 +165,7 @@ export default function Settings({ me, setMe }) {
         <div className="fine-print">
           "Teammate isn't playing" toggles live on each player's Round 1 scorecard.
         </div>
+        <MaxOverPar roundKey="round1" fallback={4} />
       </Section>
 
       <Section title="Round 2 · Scramble (Paako Ridge)">
@@ -198,6 +199,7 @@ export default function Settings({ me, setMe }) {
             setConfigKey('round2', (r2) => ({ ...r2, points: r2.points.map((x, xi) => (xi === i ? v : x)) }))
           }
         />
+        <MaxOverPar roundKey="round2" fallback={3} />
       </Section>
 
       <Section title="Round 3 · Match play (Black Mesa)">
@@ -236,6 +238,7 @@ export default function Settings({ me, setMe }) {
               onCommit={(v) => setConfigKey('round3', (r3) => ({ ...r3, halvePoints: v }))} />
           </div>
         </div>
+        <MaxOverPar roundKey="round3" fallback={3} />
       </Section>
 
       <Section title="Course · Paako Ridge (three nines)">
@@ -291,6 +294,26 @@ function MyTeamName({ me }) {
       />
       <div className="fine-print">
         You{teammate ? ` + ${teammate.name}` : ''} — shows on the leaderboard for everyone.
+      </div>
+    </>
+  );
+}
+
+// Pick-up cap for a round's scorecards (e.g. 3 = triple bogey max,
+// 4 = quadruple bogey max). Read live by HoleEntry on every card.
+function MaxOverPar({ roundKey, fallback }) {
+  const { config, setConfigKey } = useStore();
+  const value = config[roundKey].maxOverPar ?? fallback;
+  return (
+    <>
+      <h3 className="mini-title">Max score per hole (pick-up rule)</h3>
+      <NumField
+        value={value}
+        min={1} max={8}
+        onCommit={(v) => setConfigKey(roundKey, (r) => ({ ...r, maxOverPar: v }))}
+      />
+      <div className="fine-print">
+        Strokes over par allowed before pick-up — {value} = {['', 'bogey', 'double bogey', 'triple bogey', 'quadruple bogey', 'quintuple bogey'][value] || `${value}x bogey`} max.
       </div>
     </>
   );

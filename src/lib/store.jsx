@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { createClient } from '@supabase/supabase-js';
-import { DEFAULT_CONFIG, LEGACY_RULES } from './defaults.js';
+import { DEFAULT_CONFIG, LEGACY_RULES, RULES_V1 } from './defaults.js';
 
 const url = import.meta.env.VITE_SUPABASE_URL;
 const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -63,7 +63,7 @@ export function StoreProvider({ children }) {
           cfg.courses = mergeCourses(DEFAULT_CONFIG.courses, cfg.courses);
           upgrades.push({ key: 'courses', value: cfg.courses });
         }
-        if (cfg.rules === LEGACY_RULES) {
+        if (cfg.rules === LEGACY_RULES || cfg.rules === RULES_V1) {
           cfg.rules = DEFAULT_CONFIG.rules;
           upgrades.push({ key: 'rules', value: cfg.rules });
         }

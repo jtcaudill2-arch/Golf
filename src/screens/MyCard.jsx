@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useStore } from '../lib/store.jsx';
 import { holesForRound, cardTotals, matchState } from '../lib/scoring.js';
+import { DEFAULT_MAX_OVER_PAR } from '../lib/defaults.js';
 import HoleEntry from '../components/HoleEntry.jsx';
 import CardGrid from '../components/CardGrid.jsx';
 import { RelChip } from '../components/Badge.jsx';
@@ -33,6 +34,16 @@ export default function MyCard({ me }) {
   const current = holeNum ?? firstOpenHole(holes, holeScores, startHole);
   const hole = holes.find((h) => h.hole === current) || holes[0];
   const totals = cardTotals(holes, holeScores, handicap);
+  // Pick-up cap for this round (Round 1 runs quadruple bogey max by default).
+  const maxOverPar = config[`round${activeRound}`]?.maxOverPar ?? DEFAULT_MAX_OVER_PAR[activeRound] ?? 3;
+
+  const myIndex = config.players.findIndex((p) => p.id === me);
+  const adjustHandicap = (delta) => {
+    if (myIndex === -1) return;
+    const next = Math.max(0, Math.min(54, (player?.handicap || 0) + delta));
+    if (next === player?.handicap) return;
+    setConfigKey('players', (ps) => ps.map((p, i) => (i === myIndex ? { ...p, handicap: next } : p)));
+  };
 
   const soloId = config.round1.soloTeams?.[myTeam?.id];
   const mst = match ? matchState(config, scores, match) : null;
@@ -59,7 +70,14 @@ export default function MyCard({ me }) {
         </div>
         <div className="card-owner">
           {activeRound === 2 ? `${myTeam.name} · Scramble (gross)` : player.name}
-          {activeRound === 1 && ` · HCP ${player.handicap}`}
+          {activeRound === 1 && (
+            <span className="hcp-adjust">
+              · HCP
+              <button className="hcp-btn" onClick={() => adjustHandicap(-1)} aria-label="Decrease handicap">−</button>
+              <span className="hcp-val">{player.handicap}</span>
+              <button className="hcp-btn" onClick={() => adjustHandicap(1)} aria-label="Increase handicap">+</button>
+            </span>
+          )}
           {activeRound === 3 && match && ` vs ${opponent?.name}${matchStrokes ? ` · you get ${matchStrokes}` : ''}`}
         </div>
       </div>
@@ -103,6 +121,7 @@ export default function MyCard({ me }) {
         }}
         handicap={handicap}
         useHandicap={useHandicap}
+        maxOverPar={maxOverPar}
         onPrev={hole.hole > 1 ? () => setHoleNum(hole.hole - 1) : null}
         onNext={hole.hole < holes.length ? () => setHoleNum(hole.hole + 1) : null}
       />
