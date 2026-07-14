@@ -25,6 +25,7 @@ export default function Settings({ me, setMe }) {
           {players.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
         </select>
         <div className="fine-print">Sets whose scorecard the "Card" tab edits on this phone.</div>
+        <MyTeamName me={me} />
       </Section>
 
       <Section title="Active round">
@@ -247,6 +248,30 @@ export default function Settings({ me, setMe }) {
         </button>
       </Section>
     </div>
+  );
+}
+
+// Quick rename for the signed-in player's own team, shown right under the
+// identity picker so nobody has to dig through the Teams editor.
+function MyTeamName({ me }) {
+  const { config, setConfigKey } = useStore();
+  const idx = config.teams.findIndex((t) => t.players.includes(me));
+  if (idx === -1) return null;
+  const team = config.teams[idx];
+  const teammate = config.players.find(
+    (p) => team.players.includes(p.id) && p.id !== me
+  );
+  return (
+    <>
+      <h3 className="mini-title">My team name</h3>
+      <TextField
+        value={team.name}
+        onCommit={(v) => setConfigKey('teams', (ts) => upd(ts, idx, { name: v }))}
+      />
+      <div className="fine-print">
+        You{teammate ? ` + ${teammate.name}` : ''} — shows on the leaderboard for everyone.
+      </div>
+    </>
   );
 }
 
