@@ -348,7 +348,12 @@ export function overallStandings(config, scores) {
   const rows = config.players.map((p) => {
     const p1 = r1.rows.find((r) => r.id === p.id)?.points || 0;
     const myTeam = config.teams.find((t) => t.players.includes(p.id));
-    const p2 = r2.rows.find((r) => r.id === myTeam?.id)?.points || 0;
+    // Round 2 points belong to the team, not to each player individually —
+    // split the team's points in half here so summing both teammates'
+    // totals (teamStandings) lands on the team's actual point value once,
+    // not twice.
+    const teamR2Points = r2.rows.find((r) => r.id === myTeam?.id)?.points || 0;
+    const p2 = teamR2Points / 2;
     const p3 = r3.points[p.id] || 0;
     const bonus = bonusOn ? (r1team.find((r) => r.id === myTeam?.id)?.points || 0) : 0;
     return { id: p.id, name: p.name, r1: p1, r2: p2, r3: p3, bonus, total: p1 + p2 + p3 + bonus };

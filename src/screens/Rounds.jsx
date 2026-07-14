@@ -113,7 +113,10 @@ function Round2() {
           </tbody>
         </table>
       </div>
-      <div className="fine-print">Straight up — no handicaps. Both players on the team earn the points.</div>
+      <div className="fine-print">
+        Straight up — no handicaps. The team earns these points once toward the overall
+        standings, split evenly between both partners' individual totals.
+      </div>
     </>
   );
 }

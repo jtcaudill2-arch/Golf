@@ -96,7 +96,10 @@ export default function Scoring() {
         </p>
         <h3 className="mini-title">Points by gross finish</h3>
         <RankChips values={config.round2.points} />
-        <p className="fine-print">Both players on the team earn these points — it counts twice toward the overall standings.</p>
+        <p className="fine-print">
+          These points belong to the team. Each partner's own point tally shows half, so added
+          back together the team's Round 2 finish counts once toward the overall standings.
+        </p>
         <h3 className="mini-title">Max score per hole</h3>
         <p>
           {capPhrase(maxFor('round2'))} max, same rule as the other rounds — just applied to the
@@ -146,11 +149,12 @@ export default function Scoring() {
 
       <Card title="Overall standings">
         <p>
-          Each player earns points from Round 1 (individual net) and Round 3 (match play), plus
-          their team earns Round 2 (scramble) points shared by both partners
+          Each player earns their own points from Round 1 (individual net) and Round 3 (match
+          play), plus half of their team's Round 2 (scramble) points
           {config.round1.teamBonusEnabled ? ', plus the Round 1 team bonus' : ''}. On the Live
-          tab, a <b>team's total is both players' points added together</b> — that's what
-          decides the Cup.
+          tab, a <b>team's total is both players' points added together</b> — since Round 2 is
+          split in half for each partner, it lands back at the team's actual scramble finish,
+          counted once, not twice.
         </p>
         <p className="fine-print">
           Rounds still in progress show projected points: whoever's currently leading a match or
