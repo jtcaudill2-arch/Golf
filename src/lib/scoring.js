@@ -355,7 +355,11 @@ export function overallStandings(config, scores) {
     const teamR2Points = r2.rows.find((r) => r.id === myTeam?.id)?.points || 0;
     const p2 = teamR2Points / 2;
     const p3 = r3.points[p.id] || 0;
-    const bonus = bonusOn ? (r1team.find((r) => r.id === myTeam?.id)?.points || 0) : 0;
+    // Same halving as the Round 2 team split above: teamStandings sums both
+    // teammates' totals, so the bonus must land on the team's actual point
+    // value once, not twice.
+    const teamBonusPoints = bonusOn ? (r1team.find((r) => r.id === myTeam?.id)?.points || 0) : 0;
+    const bonus = teamBonusPoints / 2;
     return { id: p.id, name: p.name, r1: p1, r2: p2, r3: p3, bonus, total: p1 + p2 + p3 + bonus };
   });
   rows.sort((a, b) => b.total - a.total);

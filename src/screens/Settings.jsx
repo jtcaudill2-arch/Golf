@@ -457,7 +457,7 @@ function TeePicker({ courseKey }) {
         Sets which tee's yardages show on every scorecard, and which tee the YDS column
         below edits. Tee names are editable:
       </div>
-      <div className="points-row">
+      <div className="tee-name-list">
         {tees.map((t, i) => (
           <TextField
             key={t.id}

@@ -229,6 +229,7 @@ code { color: var(--turquoise); }
 .lb td { text-align: center; padding: 9px 4px; border-bottom: 1px solid rgba(42, 49, 56, 0.5); }
 .lb tr:last-child td { border-bottom: none; }
 .lb .lb-name { text-align: left; font-weight: 600; }
+.lb-name .stat-detail { display: block; margin-top: 2px; }
 .lb-rank { width: 34px; font-family: var(--display); color: var(--sand-dim); }
 .lb-total {
   font-family: var(--display); font-weight: 700; font-size: 17px; color: var(--turquoise);
@@ -318,10 +319,9 @@ code { color: var(--turquoise); }
 /* quick handicap adjust, inline in the card owner line */
 .hcp-adjust { display: inline-flex; align-items: center; gap: 6px; margin-left: 6px; vertical-align: middle; }
 .hcp-btn {
-  width: 32px; height: 32px; line-height: 1; border-radius: 8px; font-size: 16px; font-weight: 700;
-  background: linear-gradient(180deg, #21272e, #12161a);
+  width: 38px; height: 38px; line-height: 1; border-radius: var(--radius-sm); font-size: 16px; font-weight: 700;
+  background: var(--bg-sunken);
   border: 1px solid var(--line); color: var(--turquoise); cursor: pointer;
-  box-shadow: 0 1px 0 var(--line-lit) inset;
 }
 .hcp-btn:active { transform: translateY(1px); }
 .hcp-val { min-width: 20px; text-align: center; color: var(--sand); }
@@ -587,6 +587,7 @@ details[open] .section-summary::before { content: '▾ '; }
 .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin: 6px 0; }
 .label { font-size: 14px; font-weight: 600; }
 .points-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.tee-name-list { display: grid; grid-template-columns: 1fr; gap: 6px; }
 .match-edit { border-bottom: 1px dashed var(--line); padding-bottom: 10px; margin-bottom: 10px; }
 
 .hole-table { margin: 6px 0; }
