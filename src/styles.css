@@ -560,12 +560,11 @@ code { color: var(--turquoise); }
 .solo-toggle input { width: 20px; height: 20px; accent-color: var(--turquoise); flex-shrink: 0; }
 
 .input {
-  width: 100%; padding: 10px 12px; border-radius: 11px;
+  width: 100%; padding: 10px 12px; border-radius: var(--radius-md);
   background: var(--bg-sunken); border: 1px solid var(--line); color: var(--sand);
   font-family: var(--body); font-size: 15px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4) inset;
 }
-.input:focus { outline: none; border-color: var(--turquoise); box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4) inset, 0 0 0 3px rgba(55, 179, 168, 0.18); }
+.input:focus { outline: none; border-color: var(--turquoise); box-shadow: 0 0 0 3px rgba(55, 179, 168, 0.18); }
 .input-num { text-align: center; font-family: var(--display); font-size: 17px; }
 select.input { appearance: none; }
 
@@ -599,26 +598,23 @@ details[open] .section-summary::before { content: '▾ '; }
 .ht-num { font-family: var(--display); font-weight: 600; color: var(--sand-dim); text-align: center; }
 .par-picker { display: flex; gap: 6px; }
 .par-btn {
-  flex: 1; padding: 8px 0; border-radius: 9px; font-family: var(--display); font-size: 15px;
-  background: linear-gradient(180deg, #1c2127, #12161a);
+  flex: 1; padding: 8px 0; border-radius: var(--radius-sm); font-family: var(--display); font-size: 15px;
+  background: var(--bg-sunken);
   border: 1px solid var(--line); color: var(--sand-dim); cursor: pointer;
-  box-shadow: 0 1px 0 var(--line-lit) inset, 0 2px 5px rgba(0, 0, 0, 0.3);
 }
 .par-btn.on {
-  background: linear-gradient(180deg, #a3b573, var(--sage) 55%, #66743f);
+  background: var(--sage);
   border-color: #66743f; color: #10130a;
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.35) inset, 0 3px 8px rgba(138, 154, 91, 0.35);
 }
 
 .rules-text { white-space: pre-wrap; font-size: 14px; line-height: 1.6; padding: 16px; }
 .rules-edit { font-size: 13px; line-height: 1.5; }
 
 .btn {
-  display: block; width: 100%; padding: 12px; margin: 8px 0; border-radius: 11px;
+  display: block; width: 100%; padding: 12px; margin: 8px 0; border-radius: var(--radius-md);
   font-family: var(--display); font-size: 14px; letter-spacing: 1px; cursor: pointer;
-  background: linear-gradient(180deg, #1c2127, #12161a);
+  background: var(--bg-sunken);
   border: 1px solid var(--line); color: var(--sand);
-  box-shadow: var(--shadow-pop);
 }
 .btn:active { transform: translateY(1px); }
 .btn-danger { border-color: rgba(193, 102, 63, 0.6); color: var(--clay-text); }
