@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { StoreProvider, useStore, useIdentity, supabaseConfigured } from './lib/store.jsx';
 import Zia from './components/Zia.jsx';
+import { LiveIcon, CardIcon, RoundsIcon, ScoringIcon, RulesIcon, SetupIcon } from './components/NavIcons.jsx';
+import Weather from './components/Weather.jsx';
 import Home from './screens/Home.jsx';
 import MyCard from './screens/MyCard.jsx';
 import Rounds from './screens/Rounds.jsx';
@@ -38,7 +40,7 @@ function Shell() {
     return (
       <Center>
         <Zia size={64} spin />
-        <p className="fine-print">Loading the Zia Cup…</p>
+        <p className="fine-print">Loading the Cuck Cup…</p>
       </Center>
     );
   }
@@ -49,7 +51,7 @@ function Shell() {
       <header className="topbar">
         <Zia size={22} />
         <span className="topbar-title">{(config.eventName || 'Cuck Cup').toUpperCase()}</span>
-        <span className="topbar-sub">NM · JULY '26</span>
+        <Weather />
       </header>
       <main className="content">
         {tab === 'home' && <Home />}
@@ -60,12 +62,12 @@ function Shell() {
         {tab === 'settings' && <Settings me={me} setMe={setMe} />}
       </main>
       <nav className="bottomnav">
-        <NavBtn id="home" tab={tab} setTab={setTab} label="Live" icon="◉" />
-        <NavBtn id="card" tab={tab} setTab={setTab} label="Card" icon="✎" />
-        <NavBtn id="rounds" tab={tab} setTab={setTab} label="Rounds" icon="⛳" />
-        <NavBtn id="scoring" tab={tab} setTab={setTab} label="Scoring" icon="∑" />
-        <NavBtn id="rules" tab={tab} setTab={setTab} label="Rules" icon="§" />
-        <NavBtn id="settings" tab={tab} setTab={setTab} label="Setup" icon="⚙" />
+        <NavBtn id="home" tab={tab} setTab={setTab} label="Live" icon={<LiveIcon />} />
+        <NavBtn id="card" tab={tab} setTab={setTab} label="Card" icon={<CardIcon />} />
+        <NavBtn id="rounds" tab={tab} setTab={setTab} label="Rounds" icon={<RoundsIcon />} />
+        <NavBtn id="scoring" tab={tab} setTab={setTab} label="Scoring" icon={<ScoringIcon />} />
+        <NavBtn id="rules" tab={tab} setTab={setTab} label="Rules" icon={<RulesIcon />} />
+        <NavBtn id="settings" tab={tab} setTab={setTab} label="Setup" icon={<SetupIcon />} />
       </nav>
     </div>
   );
@@ -74,10 +76,7 @@ function Shell() {
 function NavBtn({ id, tab, setTab, label, icon }) {
   return (
     <button className={`nav-btn ${tab === id ? 'on' : ''}`} onClick={() => setTab(id)}>
-      <span className="nav-icon">
-        {icon}
-        {id === 'home' && <span className="nav-live-dot" />}
-      </span>
+      <span className="nav-icon">{icon}</span>
       <span className="nav-label">{label}</span>
     </button>
   );
